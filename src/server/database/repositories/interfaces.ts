@@ -21,6 +21,7 @@ import type {
   ProjectNotificationDefaults,
   ApiToken,
   ApiTokenScope,
+  ReporterMessage,
 } from '@shared/types';
 
 // Report Repository Interface
@@ -263,4 +264,12 @@ export interface IApiTokensRepository {
   revoke(id: string): Promise<boolean>;
   revokeAllForUser(userId: string): Promise<number>;
   deleteExpired(): Promise<number>;
+}
+
+// Reporter Messages Repository Interface
+
+export interface IReporterMessagesRepository {
+  create(reportId: string, userId: string, message: string): Promise<ReporterMessage>;
+  findByReportId(reportId: string): Promise<ReporterMessage[]>;
+  findLatestByReportId(reportId: string): Promise<ReporterMessage | null>;
 }

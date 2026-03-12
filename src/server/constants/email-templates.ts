@@ -91,6 +91,41 @@ export const templateVariables: Record<EmailTemplateType, string[]> = {
     'report.priorityFormatted',
   ],
   testEmail: ['app.name'],
+  reporterConfirmation: [
+    'app.name',
+    'app.url',
+    'project.name',
+    'report.title',
+    'report.description',
+    'report.status',
+    'report.statusFormatted',
+    'report.priority',
+    'report.priorityFormatted',
+    'report.createdAt',
+  ],
+  reporterStatusChange: [
+    'app.name',
+    'app.url',
+    'project.name',
+    'report.title',
+    'report.description',
+    'oldStatus',
+    'oldStatusFormatted',
+    'newStatus',
+    'newStatusFormatted',
+    'reporterMessage',
+    'reporterMessageDisplay',
+  ],
+  reporterMessage: [
+    'app.name',
+    'app.url',
+    'project.name',
+    'report.title',
+    'report.status',
+    'report.statusFormatted',
+    'sender.name',
+    'message',
+  ],
 };
 
 // Shared email styles (exported for use in appending footer)
@@ -337,6 +372,124 @@ export const defaultEmailTemplates: EmailTemplates = {
 </body>
 </html>`,
   },
+  reporterConfirmation: {
+    subject: 'Your bug report has been received: {{report.title}}',
+    html: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>${emailStyles}</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin: 0; font-size: 24px;">Report Received</h1>
+      <p style="margin: 10px 0 0 0; opacity: 0.9;">{{app.name}}</p>
+    </div>
+    <div class="content">
+      <p style="font-size: 16px;">Thank you for submitting your bug report. Our team has received it and will review it shortly.</p>
+      <h2 style="margin-top: 15px;">{{report.title}}</h2>
+      <p>{{report.description}}</p>
+
+      <div class="meta">
+        <div class="meta-row">
+          <span class="label">Status:</span>
+          <span class="badge badge-status">{{report.statusFormatted}}</span>
+        </div>
+        <div class="meta-row">
+          <span class="label">Priority:</span>
+          <span class="badge badge-priority">{{report.priorityFormatted}}</span>
+        </div>
+        <div class="meta-row">
+          <span class="label">Submitted:</span>
+          <span>{{report.createdAt}}</span>
+        </div>
+      </div>
+
+      <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">You will receive email updates when the status of your report changes.</p>
+    </div>
+  </div>
+</body>
+</html>`,
+  },
+  reporterStatusChange: {
+    subject: 'Update on your bug report: {{report.title}}',
+    html: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    ${emailStyles}
+    .status-change { background: white; padding: 15px; border-radius: 6px; margin: 15px 0; text-align: center; }
+    .arrow { color: #6b7280; margin: 0 10px; }
+    .team-message { background: white; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid ${BRAND_COLOR_PLACEHOLDER}; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin: 0; font-size: 24px;">Report Status Updated</h1>
+      <p style="margin: 10px 0 0 0; opacity: 0.9;">{{app.name}}</p>
+    </div>
+    <div class="content">
+      <h2 style="margin-top: 0;">{{report.title}}</h2>
+      <p style="color: #4b5563;">The status of your bug report has been updated.</p>
+
+      <div class="status-change">
+        <strong style="color: #6b7280;">{{oldStatusFormatted}}</strong>
+        <span class="arrow">&rarr;</span>
+        <strong style="color: ${BRAND_COLOR_PLACEHOLDER};">{{newStatusFormatted}}</strong>
+      </div>
+
+      <div class="team-message" style="display: {{reporterMessageDisplay}};">
+        <p style="margin: 0 0 5px 0; font-weight: 600; color: #374151;">Message from the team:</p>
+        <p style="margin: 0; color: #4b5563;">{{reporterMessage}}</p>
+      </div>
+
+      <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">Thank you for your report. We will continue to keep you updated on any changes.</p>
+    </div>
+  </div>
+</body>
+</html>`,
+  },
+  reporterMessage: {
+    subject: 'Message about your bug report: {{report.title}}',
+    html: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    ${emailStyles}
+    .team-message { background: white; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid ${BRAND_COLOR_PLACEHOLDER}; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin: 0; font-size: 24px;">Message About Your Report</h1>
+      <p style="margin: 10px 0 0 0; opacity: 0.9;">{{app.name}}</p>
+    </div>
+    <div class="content">
+      <h2 style="margin-top: 0;">{{report.title}}</h2>
+      <p style="color: #4b5563;"><strong>{{sender.name}}</strong> has sent you a message regarding your bug report.</p>
+
+      <div class="team-message">
+        <p style="margin: 0; color: #4b5563;">{{message}}</p>
+      </div>
+
+      <div class="meta">
+        <div class="meta-row">
+          <span class="label">Current Status:</span>
+          <span class="badge badge-status">{{report.statusFormatted}}</span>
+        </div>
+      </div>
+
+      <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">Thank you for your report. We will continue to keep you updated on any changes.</p>
+    </div>
+  </div>
+</body>
+</html>`,
+  },
   testEmail: {
     subject: 'Test Email from {{app.name}}',
     html: `<!DOCTYPE html>
@@ -444,6 +597,64 @@ export function getSampleDataForTemplate(
           url: `${appUrl}/admin/accept-invitation?token=sample-token-123`,
           expiresInDays: 7,
         },
+      };
+
+    case 'reporterConfirmation':
+      return {
+        ...baseData,
+        project: {
+          name: 'Sample Project',
+        },
+        report: {
+          title: 'Button not working on checkout page',
+          description:
+            'When clicking the "Complete Purchase" button, nothing happens. The page stays the same and no error is shown.',
+          status: 'open',
+          statusFormatted: 'Open',
+          priority: 'high',
+          priorityFormatted: 'High',
+          createdAt: new Date().toLocaleString(),
+        },
+      };
+
+    case 'reporterStatusChange':
+      return {
+        ...baseData,
+        project: {
+          name: 'Sample Project',
+        },
+        report: {
+          title: 'Button not working on checkout page',
+          description:
+            'When clicking the "Complete Purchase" button, nothing happens. The page stays the same and no error is shown.',
+          status: 'in_progress',
+          statusFormatted: 'In Progress',
+        },
+        oldStatus: 'open',
+        oldStatusFormatted: 'Open',
+        newStatus: 'in_progress',
+        newStatusFormatted: 'In Progress',
+        reporterMessage:
+          'We have identified the issue and are working on a fix. Expect a resolution within the next 24 hours.',
+        reporterMessageDisplay: 'block',
+      };
+
+    case 'reporterMessage':
+      return {
+        ...baseData,
+        project: {
+          name: 'Sample Project',
+        },
+        report: {
+          title: 'Button not working on checkout page',
+          status: 'in_progress',
+          statusFormatted: 'In Progress',
+        },
+        sender: {
+          name: 'John Doe',
+        },
+        message:
+          'Thank you for reporting this issue. Could you please provide more details about which browser you were using?',
       };
 
     case 'testEmail':

@@ -183,6 +183,7 @@ export interface ProjectSettings {
     emailRequired?: boolean;
     customFields?: CustomField[];
   };
+  notifyReporter?: boolean;
   // Legacy widget settings (for backward compatibility during migration)
   widget?: {
     enabled?: boolean;
@@ -536,7 +537,10 @@ export type EmailTemplateType =
   | 'assignment'
   | 'invitation'
   | 'reportDeleted'
-  | 'testEmail';
+  | 'testEmail'
+  | 'reporterConfirmation'
+  | 'reporterStatusChange'
+  | 'reporterMessage';
 
 export interface EmailTemplate {
   subject: string;
@@ -551,4 +555,17 @@ export interface EmailTemplates {
   invitation: EmailTemplate;
   reportDeleted: EmailTemplate;
   testEmail: EmailTemplate;
+  reporterConfirmation: EmailTemplate;
+  reporterStatusChange: EmailTemplate;
+  reporterMessage: EmailTemplate;
+}
+
+export interface ReporterMessage {
+  id: string;
+  reportId: string;
+  userId: string;
+  userName?: string;
+  message: string;
+  sentAt: string;
+  createdAt: string;
 }

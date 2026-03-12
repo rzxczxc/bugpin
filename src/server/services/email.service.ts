@@ -42,6 +42,15 @@ export interface SMTPConfig {
 // Service
 
 export const emailService = {
+  createTransporter(config: {
+    host: string;
+    port: number;
+    secure: boolean;
+    auth?: { user: string; pass: string };
+  }) {
+    return nodemailer.createTransport(config);
+  },
+
   /**
    * Send an email using configured SMTP settings
    */
@@ -72,7 +81,7 @@ export const emailService = {
         };
       }
 
-      const transporter = nodemailer.createTransport({
+      const transporter = this.createTransporter({
         host: sanitizeSmtpHost(settings.smtpConfig.host),
         port: settings.smtpConfig.port || 587,
         secure: settings.smtpConfig.port === 465,
@@ -362,6 +371,165 @@ export const emailService = {
   },
 
   /**
+   * Send confirmation email to reporter after submitting a report
+   */
+  async sendReporterConfirmationEmail(
+    recipient: string,
+    data: {
+      report: Report;
+      projectName: string;
+      appName: string;
+      appUrl: string;
+    },
+  ): Promise<{ success: boolean; error?: string }> {
+    const settings = await settingsCacheService.getAll();
+    const { report, projectName, appName, appUrl } = data;
+
+    const template = await this.getTemplate('reporterConfirmation');
+    const templateData = {
+      app: {
+        name: appName,
+        url: appUrl,
+      },
+      project: {
+        name: projectName,
+      },
+      report: {
+        title: report.title,
+        description: report.description || '',
+        status: report.status,
+        statusFormatted: formatStatus(report.status),
+        priority: report.priority,
+        priorityFormatted: formatPriority(report.priority),
+        createdAt: new Date(report.createdAt).toLocaleString(),
+      },
+    };
+
+    const subject = templateService.compileTemplate(template.subject, templateData);
+    const compiledHtml = templateService.compileTemplate(template.html, templateData);
+    const withFooter = appendFooterToHtml(compiledHtml, 'reporterConfirmation');
+    const html = applyBrandColor(
+      withFooter,
+      settings.branding?.primaryColor || DEFAULT_BRAND_COLOR,
+    );
+
+    return this.sendEmail({
+      to: [{ email: recipient }],
+      subject,
+      html,
+    });
+  },
+
+  /**
+   * Send status change email to reporter
+   */
+  async sendReporterStatusChangeEmail(
+    recipient: string,
+    data: {
+      report: Report;
+      projectName: string;
+      appName: string;
+      appUrl: string;
+      oldStatus: string;
+      newStatus: string;
+      reporterMessage?: string;
+    },
+  ): Promise<{ success: boolean; error?: string }> {
+    const settings = await settingsCacheService.getAll();
+    const { report, projectName, appName, appUrl, oldStatus, newStatus, reporterMessage } = data;
+
+    const template = await this.getTemplate('reporterStatusChange');
+    const templateData = {
+      app: {
+        name: appName,
+        url: appUrl,
+      },
+      project: {
+        name: projectName,
+      },
+      report: {
+        title: report.title,
+        description: report.description || '',
+        status: report.status,
+        statusFormatted: formatStatus(report.status),
+      },
+      oldStatus,
+      oldStatusFormatted: formatStatus(oldStatus),
+      newStatus,
+      newStatusFormatted: formatStatus(newStatus),
+      reporterMessage: reporterMessage || '',
+      reporterMessageDisplay: reporterMessage ? 'block' : 'none',
+    };
+
+    const subject = templateService.compileTemplate(template.subject, templateData);
+    const compiledHtml = templateService.compileTemplate(template.html, templateData);
+    const withFooter = appendFooterToHtml(compiledHtml, 'reporterStatusChange');
+    const html = applyBrandColor(
+      withFooter,
+      settings.branding?.primaryColor || DEFAULT_BRAND_COLOR,
+    );
+
+    return this.sendEmail({
+      to: [{ email: recipient }],
+      subject,
+      html,
+    });
+  },
+
+  /**
+   * Send a direct message email to the reporter
+   */
+  async sendReporterMessageEmail(
+    recipient: string,
+    data: {
+      report: Report;
+      projectName: string;
+      appName: string;
+      appUrl: string;
+      senderName: string;
+      message: string;
+    },
+  ): Promise<{ success: boolean; error?: string }> {
+    const settings = await settingsCacheService.getAll();
+    const { report, projectName, appName, appUrl, senderName, message } = data;
+
+    const template = await this.getTemplate('reporterMessage');
+    const templateData = {
+      app: {
+        name: appName,
+        url: appUrl,
+      },
+      project: {
+        name: projectName,
+      },
+      report: {
+        title: report.title,
+        description: report.description || '',
+        status: report.status,
+        statusFormatted: formatStatus(report.status),
+      },
+      sender: {
+        name: senderName,
+      },
+      message,
+    };
+
+    const subject = templateService.compileTemplate(template.subject, templateData);
+    const compiledHtml = templateService.compileTemplate(template.html, templateData);
+    const withFooter = appendFooterToHtml(compiledHtml, 'reporterMessage');
+    const html = applyBrandColor(
+      withFooter,
+      settings.branding?.primaryColor || DEFAULT_BRAND_COLOR,
+    );
+
+    return this.sendEmail({
+      to: [{ email: recipient }],
+      subject,
+      html,
+    });
+  },
+
+  /**
    * Send invitation email to a new user
    */
   async sendInvitationEmail(
@@ -414,7 +582,7 @@ export const emailService = {
         return { success: false, error: 'SMTP host and from address are required' };
       }
 
-      const transporter = nodemailer.createTransport({
+      const transporter = this.createTransporter({
         host: sanitizeSmtpHost(config.host),
         port: config.port || 587,
         secure: config.port === 465,

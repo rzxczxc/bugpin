@@ -153,6 +153,13 @@ export const reportsService = {
       });
     });
 
+    // Send confirmation email to reporter (async, don't block)
+    notificationsService.notifyReporterSubmission(report).catch((error) => {
+      logger.error('Failed to send reporter submission confirmation', error, {
+        reportId: report.id,
+      });
+    });
+
     // Check for auto-sync integration and queue sync (async, don't block)
     githubSyncService
       .getAutoSyncIntegration(project.id)
@@ -305,6 +312,19 @@ export const reportsService = {
         .notifyStatusChange(report, changes.status.old as string, changes.status.new as string)
         .catch((error) => {
           logger.error('Failed to send status change notification', error, { reportId: id });
+        });
+
+      // Notify reporter of status change (async, don't block)
+      notificationsService
+        .notifyReporterStatusChange(
+          report,
+          changes.status.old as ReportStatus,
+          changes.status.new as ReportStatus,
+        )
+        .catch((error) => {
+          logger.error('Failed to send reporter status change notification', error, {
+            reportId: id,
+          });
         });
     }
 

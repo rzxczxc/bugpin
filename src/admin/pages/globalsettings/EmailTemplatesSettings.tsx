@@ -58,6 +58,21 @@ const TEMPLATE_TYPES: { value: EmailTemplateType; label: string; description: st
     label: 'Test Email',
     description: 'Sent when testing SMTP configuration',
   },
+  {
+    value: 'reporterConfirmation',
+    label: 'Reporter Confirmation',
+    description: 'Sent to the reporter when a bug report is submitted',
+  },
+  {
+    value: 'reporterStatusChange',
+    label: 'Reporter Status Change',
+    description: 'Sent to the reporter when report status changes',
+  },
+  {
+    value: 'reporterMessage',
+    label: 'Reporter Message',
+    description: 'Sent to the reporter when an admin sends a direct message',
+  },
 ];
 
 const TEMPLATE_VARIABLES: Record<EmailTemplateType, string[]> = {
@@ -122,6 +137,41 @@ const TEMPLATE_VARIABLES: Record<EmailTemplateType, string[]> = {
     'report.priorityFormatted',
   ],
   testEmail: ['app.name'],
+  reporterConfirmation: [
+    'app.name',
+    'app.url',
+    'project.name',
+    'report.title',
+    'report.description',
+    'report.status',
+    'report.statusFormatted',
+    'report.priority',
+    'report.priorityFormatted',
+    'report.createdAt',
+  ],
+  reporterStatusChange: [
+    'app.name',
+    'app.url',
+    'project.name',
+    'report.title',
+    'report.description',
+    'oldStatus',
+    'oldStatusFormatted',
+    'newStatus',
+    'newStatusFormatted',
+    'reporterMessage',
+    'reporterMessageDisplay',
+  ],
+  reporterMessage: [
+    'app.name',
+    'app.url',
+    'project.name',
+    'report.title',
+    'report.status',
+    'report.statusFormatted',
+    'sender.name',
+    'message',
+  ],
 };
 
 export function EmailTemplatesSettings() {

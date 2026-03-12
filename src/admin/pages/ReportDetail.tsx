@@ -5,11 +5,14 @@ import { toast } from 'sonner';
 import { api } from '../api/client';
 import { useAuth } from '../contexts/AuthContext';
 import { useIntegrations, useForwardReport } from '../hooks/useIntegrations';
+import { useReporterMessages } from '../hooks/useReporterMessages';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Label } from '../components/ui/label';
 import { Separator } from '../components/ui/separator';
+import { Textarea } from '../components/ui/textarea';
+import { Checkbox } from '../components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -44,6 +47,7 @@ import {
   RefreshCw,
   Github,
   CheckCircle,
+  MessageSquare,
 } from 'lucide-react';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../components/ui/collapsible';
 import { Spinner } from '../components/ui/spinner';
@@ -60,6 +64,11 @@ export function ReportDetail() {
   const [editData, setEditData] = useState({ status: '', priority: '' });
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [composeMessage, setComposeMessage] = useState('');
+  const [composeCcSender, setComposeCcSender] = useState(false);
+  const [resolveMessage, setResolveMessage] = useState('');
+  const [resolveCcSender, setResolveCcSender] = useState(false);
+  const [showResolveMessage, setShowResolveMessage] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['report', id],
@@ -72,6 +81,15 @@ export function ReportDetail() {
 
   // Load integrations for this report's project
   const { data: integrations } = useIntegrations(data?.report?.projectId);
+
+  // Reporter messages
+  const {
+    messages: reporterMessages,
+    isLoading: messagesLoading,
+    sendMessage,
+    sendMessageAsync,
+    isSending,
+  } = useReporterMessages(id ?? '');
 
   const forwardMutation = useForwardReport();
 
@@ -144,14 +162,35 @@ export function ReportDetail() {
 
   const { report, files } = data;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const updates: Record<string, string> = {};
     if (editData.status && editData.status !== report.status) updates.status = editData.status;
     if (editData.priority && editData.priority !== report.priority)
       updates.priority = editData.priority;
 
     if (Object.keys(updates).length > 0) {
-      updateMutation.mutate(updates);
+      const shouldSendResolveMessage =
+        updates.status === 'resolved' &&
+        report.reporterEmail &&
+        resolveMessage.trim();
+
+      updateMutation.mutate(updates, {
+        onSuccess: async () => {
+          if (shouldSendResolveMessage) {
+            try {
+              await sendMessageAsync({
+                message: resolveMessage.trim(),
+                ccSender: resolveCcSender,
+              });
+            } catch {
+              // Toast error is handled by the hook
+            }
+          }
+          setResolveMessage('');
+          setResolveCcSender(false);
+          setShowResolveMessage(false);
+        },
+      });
     } else {
       setIsEditing(false);
     }
@@ -639,6 +678,7 @@ export function ReportDetail() {
                 </Card>
               </Collapsible>
             )}
+
         </div>
 
         {/* Sidebar */}
@@ -652,20 +692,59 @@ export function ReportDetail() {
               <div className="space-y-1">
                 <Label className="text-muted-foreground block">Status</Label>
                 {isEditing ? (
-                  <Select
-                    value={editData.status}
-                    onValueChange={(value) => setEditData({ ...editData, status: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="open">Open</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="resolved">Resolved</SelectItem>
-                      <SelectItem value="closed">Closed</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <>
+                    <Select
+                      value={editData.status}
+                      onValueChange={(value) => setEditData({ ...editData, status: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="open">Open</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="resolved">Resolved</SelectItem>
+                        <SelectItem value="closed">Closed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {editData.status === 'resolved' && report.reporterEmail && (
+                      <div className="mt-2 space-y-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowResolveMessage(!showResolveMessage);
+                            if (showResolveMessage) setResolveMessage('');
+                          }}
+                          className="text-sm text-primary hover:underline flex items-center gap-1"
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                          {showResolveMessage
+                            ? 'Remove message for reporter'
+                            : 'Add a message for the reporter?'}
+                        </button>
+                        {showResolveMessage && (
+                          <>
+                            <Textarea
+                              placeholder="Optional message to send to the reporter..."
+                              value={resolveMessage}
+                              onChange={(e) => setResolveMessage(e.target.value)}
+                              rows={3}
+                              className="text-sm"
+                            />
+                            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                              <Checkbox
+                                checked={resolveCcSender}
+                                onCheckedChange={(checked) =>
+                                  setResolveCcSender(checked === true)
+                                }
+                              />
+                              Send me a copy
+                            </label>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div>
                     <StatusBadge status={report.status} />
@@ -755,6 +834,112 @@ export function ReportDetail() {
               />
             </CardContent>
           </Card>
+
+          {/* Reporter Messages */}
+          {report.reporterEmail && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Reporter Messages
+                  {reporterMessages.length > 0 && (
+                    <Badge variant="secondary" className="ml-1">
+                      {reporterMessages.length}
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Compose new message (admin/editor only) */}
+                {canEdit && (
+                  <>
+                    <div className="space-y-2">
+                      <Textarea
+                        placeholder="Write a message to the reporter..."
+                        value={composeMessage}
+                        onChange={(e) => setComposeMessage(e.target.value)}
+                        rows={3}
+                        disabled={isSending}
+                      />
+                      <div className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                          <Checkbox
+                            checked={composeCcSender}
+                            onCheckedChange={(checked) =>
+                              setComposeCcSender(checked === true)
+                            }
+                            disabled={isSending}
+                          />
+                          Send me a copy
+                        </label>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            if (composeMessage.trim()) {
+                              sendMessage(
+                                { message: composeMessage.trim(), ccSender: composeCcSender },
+                                {
+                                  onSuccess: () => {
+                                    setComposeMessage('');
+                                    setComposeCcSender(false);
+                                  },
+                                },
+                              );
+                            }
+                          }}
+                          disabled={!composeMessage.trim() || isSending}
+                        >
+                          {isSending ? (
+                            <>
+                              <Spinner size="sm" className="mr-2" />
+                              Sending...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="h-4 w-4 mr-2" />
+                              Send Message
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <Separator />
+                  </>
+                )}
+
+                {/* Message history */}
+                {messagesLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Spinner size="sm" className="text-muted-foreground" />
+                  </div>
+                ) : reporterMessages.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No messages sent yet. Send a message to communicate with the reporter.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {[...reporterMessages].reverse().map((msg) => (
+                      <div
+                        key={msg.id}
+                        className="rounded-lg border bg-muted/30 p-3 space-y-1"
+                      >
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span className="font-medium">
+                            {msg.userName ?? 'System'}
+                          </span>
+                          <span title={new Date(msg.sentAt).toLocaleString()}>
+                            {formatRelativeTime(new Date(msg.sentAt))}
+                          </span>
+                        </div>
+                        <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Forwarded To */}
           {report.forwardedTo && report.forwardedTo.length > 0 && (
@@ -934,4 +1119,19 @@ function PriorityBadge({ priority }: { priority: string }) {
       {priority}
     </Badge>
   );
+}
+
+function formatRelativeTime(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffSeconds < 60) return 'just now';
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
 }

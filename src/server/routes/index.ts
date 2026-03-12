@@ -13,6 +13,7 @@ import licenseRoutes from './api/license.js';
 import { apiTokensRoutes } from './api/api-tokens.js';
 import { customTemplatesRoutes } from './api/custom-templates.js';
 import { whiteLabelRoutes } from './api/white-label.js';
+import { reporterMessagesRoutes } from './api/reporter-messages.js';
 import { widgetRoutes } from './widget/submit.js';
 import { githubWebhookRoutes } from './api/github-webhook.js';
 import { publicFilesRoutes } from './api/public-files.js';
@@ -26,6 +27,7 @@ export function createApiRouter(): Hono {
   // Mount core CE API routes
   api.route('/auth', authRoutes);
   api.route('/reports', reportsRoutes);
+  api.route('/reports', reporterMessagesRoutes);
   api.route('/projects', projectsRoutes);
   api.route('/users', usersRoutes);
   api.route('/settings', settingsRoutes);
