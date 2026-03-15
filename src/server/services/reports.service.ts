@@ -338,6 +338,19 @@ export const reportsService = {
         .catch((error) => {
           logger.error('Failed to send priority change notification', error, { reportId: id });
         });
+
+      // Notify reporter of priority change (async, don't block)
+      notificationsService
+        .notifyReporterPriorityChange(
+          report,
+          changes.priority.old as ReportPriority,
+          changes.priority.new as ReportPriority,
+        )
+        .catch((error) => {
+          logger.error('Failed to send reporter priority change notification', error, {
+            reportId: id,
+          });
+        });
     }
 
     if (changes.assignedTo && changes.assignedTo.new) {

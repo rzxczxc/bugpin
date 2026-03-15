@@ -477,6 +477,59 @@ export const emailService = {
   },
 
   /**
+   * Send priority change email to reporter
+   */
+  async sendReporterPriorityChangeEmail(
+    recipient: string,
+    data: {
+      report: Report;
+      projectName: string;
+      appName: string;
+      appUrl: string;
+      oldPriority: string;
+      newPriority: string;
+    },
+  ): Promise<{ success: boolean; error?: string }> {
+    const settings = await settingsCacheService.getAll();
+    const { report, projectName, appName, appUrl, oldPriority, newPriority } = data;
+
+    const template = await this.getTemplate('reporterPriorityChange');
+    const templateData = {
+      app: {
+        name: appName,
+        url: appUrl,
+      },
+      project: {
+        name: projectName,
+      },
+      report: {
+        title: report.title,
+        description: report.description || '',
+        priority: report.priority,
+        priorityFormatted: formatPriority(report.priority),
+      },
+      oldPriority,
+      oldPriorityFormatted: formatPriority(oldPriority),
+      newPriority,
+      newPriorityFormatted: formatPriority(newPriority),
+    };
+
+    const subject = templateService.compileTemplate(template.subject, templateData);
+    const compiledHtml = templateService.compileTemplate(template.html, templateData);
+    const withFooter = appendFooterToHtml(compiledHtml, 'reporterPriorityChange');
+    const html = applyBrandColor(
+      withFooter,
+      settings.branding?.primaryColor || DEFAULT_BRAND_COLOR,
+    );
+
+    return this.sendEmail({
+      to: [{ email: recipient }],
+      subject,
+      html,
+    });
+  },
+
+  /**
    * Send a direct message email to the reporter
    */
   async sendReporterMessageEmail(

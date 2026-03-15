@@ -133,7 +133,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-sidebar: var(--sidebar-background);
+  --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
@@ -142,6 +142,38 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --radius: var(--radius);
+}
+
+
+/* Appearance dialog theme buttons — sm on desktop, larger on mobile */
+@layer utilities {
+  .appearance-theme-btn {
+    height: 2rem;
+    padding-inline: 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Mobile touch targets — larger tap areas below md (768px) */
+@layer utilities {
+  @media (max-width: 767px) {
+    [data-sidebar='menu-button'][data-size='default'] {
+      @apply h-12 text-base;
+    }
+
+    [data-sidebar='menu-sub-button'] {
+      @apply h-10 text-base;
+    }
+
+    .dropdown-menu-item {
+      @apply py-3 text-base;
+    }
+
+    .appearance-theme-btn {
+      height: 3rem;
+      font-size: 0.875rem;
+    }
+  }
 }
 
 /* Base styles */

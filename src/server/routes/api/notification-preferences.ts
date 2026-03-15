@@ -54,6 +54,29 @@ notificationPreferences.get(
 );
 
 /**
+ * Update notification preferences for all projects
+ */
+notificationPreferences.patch(
+  '/me/all-projects',
+  validate({ body: schemas.updateNotificationPreferences }),
+  async (c) => {
+    const user = c.get('user') as User;
+    const body = await c.req.json();
+
+    const result = await notificationsService.updateAllUserPreferences(user.id, body);
+
+    if (!result.success) {
+      return c.json({ success: false, error: result.code, message: result.error }, 400);
+    }
+
+    return c.json({
+      success: true,
+      preferences: result.value,
+    });
+  },
+);
+
+/**
  * Update user's notification preferences for a project
  */
 notificationPreferences.patch(
