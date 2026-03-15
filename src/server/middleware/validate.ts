@@ -235,6 +235,23 @@ export const schemas = {
         from: z.string().optional(),
       })
       .optional(),
+    notifications: z
+      .object({
+        emailEnabled: z.boolean().optional(),
+        notifyOnNewReport: z.boolean().optional(),
+        notifyOnStatusChange: z.boolean().optional(),
+        notifyOnPriorityChange: z.boolean().optional(),
+        notifyOnAssignment: z.boolean().optional(),
+        notifyOnDeletion: z.boolean().optional(),
+      })
+      .optional(),
+    reporterNotifications: z
+      .object({
+        notifyOnStatusChange: z.boolean().optional(),
+        notifyOnPriorityChange: z.boolean().optional(),
+        messagingEnabled: z.boolean().optional(),
+      })
+      .optional(),
     retentionDays: z.number().int().min(0).max(3650).optional(),
     maxScreenshotSizeMb: z.number().int().min(1).max(50).optional(),
     rateLimitPerMinute: z.number().int().min(1).max(1000).optional(),

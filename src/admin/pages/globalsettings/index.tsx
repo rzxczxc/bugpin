@@ -11,6 +11,8 @@ import { BrandingSettings } from './BrandingSettings';
 import { WidgetDialogSettings } from './WidgetDialogSettings';
 import { UsersSettings } from './UsersSettings';
 import { LicenseSettings } from './LicenseSettings';
+import { NotificationDefaultsSettings } from './NotificationDefaultsSettings';
+import { ReporterNotificationSettings } from './ReporterNotificationSettings';
 
 // All valid hash values (includes sub-tabs like 'screenshot')
 const ALL_VALID_HASHES = [
@@ -20,6 +22,8 @@ const ALL_VALID_HASHES = [
   'design',
   'widgetDialog',
   'notifications',
+  'reporterNotifications',
+  'smtp',
   'emailTemplates',
   'security',
   'storage',
@@ -41,7 +45,9 @@ const hashToMainTab: Record<HashValue, MainTabValue> = {
   widgetDialog: 'design', // widget dialog is a sub-tab of design
   widgetLauncherButton: 'design', // widget launcher button is a sub-tab of design
   notifications: 'notifications',
-  emailTemplates: 'notifications', // email templates is a sub-tab of notifications
+  reporterNotifications: 'notifications',
+  smtp: 'notifications',
+  emailTemplates: 'notifications',
   security: 'security',
   users: 'users',
   license: 'license',
@@ -65,7 +71,9 @@ const tabConfigs: Record<MainTabValue, SubTab[]> = {
     { hash: 'design', label: 'Admin Console' },
   ],
   notifications: [
-    { hash: 'notifications', label: 'SMTP' },
+    { hash: 'notifications', label: 'Notifications' },
+    { hash: 'reporterNotifications', label: 'Reporter' },
+    { hash: 'smtp', label: 'SMTP' },
     { hash: 'emailTemplates', label: 'Email Templates' },
   ],
   security: [{ hash: 'security', label: 'Rate Limits' }],
@@ -162,6 +170,8 @@ export function Settings() {
 
       <TabsContent value="notifications" className="max-w-3xl mt-0">
         <SubPageTabs mainTab="notifications" activeHash={activeHash}>
+          <NotificationDefaultsSettings />
+          <ReporterNotificationSettings />
           <SMTPSettings />
           <EmailTemplatesSettings />
         </SubPageTabs>

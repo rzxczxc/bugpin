@@ -14,6 +14,10 @@ import type {
   ProjectNotificationDefaults,
   Report,
   ReportStatus,
+  ReportPriority,
+  AppSettings,
+  ProjectSettings,
+  ReporterNotificationSettings,
 } from '@shared/types';
 
 // Types
@@ -34,6 +38,37 @@ export interface UpdateProjectNotificationDefaultsInput {
   defaultNotifyOnAssignment?: boolean;
   defaultNotifyOnDeletion?: boolean;
   defaultEmailEnabled?: boolean;
+}
+
+// Helpers
+
+function getEffectiveReporterSettings(
+  globalSettings: AppSettings,
+  projectSettings?: ProjectSettings,
+): ReporterNotificationSettings {
+  const globalReporter = globalSettings.reporterNotifications ?? {
+    notifyOnStatusChange: true,
+    notifyOnPriorityChange: true,
+    messagingEnabled: true,
+  };
+
+  // Legacy backward compat: if notifyReporter is explicitly false, disable all
+  if (projectSettings?.notifyReporter === false) {
+    return {
+      notifyOnStatusChange: false,
+      notifyOnPriorityChange: false,
+      messagingEnabled: false,
+    };
+  }
+
+  // Project overrides take precedence over global
+  const projectReporter = projectSettings?.reporterNotifications;
+  return {
+    notifyOnStatusChange: projectReporter?.notifyOnStatusChange ?? globalReporter.notifyOnStatusChange,
+    notifyOnPriorityChange:
+      projectReporter?.notifyOnPriorityChange ?? globalReporter.notifyOnPriorityChange,
+    messagingEnabled: projectReporter?.messagingEnabled ?? globalReporter.messagingEnabled,
+  };
 }
 
 // Service
@@ -555,14 +590,15 @@ export const notificationsService = {
         return;
       }
 
-      if (project.settings?.notifyReporter === false) {
-        logger.debug('Reporter notifications disabled for project', {
+      const settings = await settingsCacheService.getAll();
+      const effective = getEffectiveReporterSettings(settings, project.settings);
+      if (!effective.notifyOnStatusChange) {
+        logger.debug('Reporter status change notifications disabled', {
           projectId: report.projectId,
         });
         return;
       }
 
-      const settings = await settingsCacheService.getAll();
       const latestMessage = await reporterMessagesRepo.findLatestByReportId(report.id);
 
       const result = await emailService.sendReporterStatusChangeEmail(report.reporterEmail, {
@@ -616,6 +652,13 @@ export const notificationsService = {
         return;
       }
 
+      const settings = await settingsCacheService.getAll();
+      const effective = getEffectiveReporterSettings(settings, project.settings);
+      if (!effective.messagingEnabled) {
+        logger.debug('Reporter messaging disabled', { projectId: report.projectId });
+        return;
+      }
+
       const sender = await usersRepo.findById(senderUserId);
       if (!sender) {
         logger.error('Sender user not found for reporter message notification', {
@@ -623,8 +666,6 @@ export const notificationsService = {
         });
         return;
       }
-
-      const settings = await settingsCacheService.getAll();
 
       const emailData = {
         report,
@@ -754,5 +795,86 @@ export const notificationsService = {
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
+  },
+
+  /**
+   * Send priority change email to reporter
+   */
+  async notifyReporterPriorityChange(
+    report: Report,
+    oldPriority: ReportPriority,
+    newPriority: ReportPriority,
+  ): Promise<void> {
+    try {
+      if (!report.reporterEmail) {
+        return;
+      }
+
+      const project = await projectsRepo.findById(report.projectId);
+      if (!project) {
+        logger.error('Project not found for reporter priority change notification', {
+          projectId: report.projectId,
+        });
+        return;
+      }
+
+      const settings = await settingsCacheService.getAll();
+      const effective = getEffectiveReporterSettings(settings, project.settings);
+      if (!effective.notifyOnPriorityChange) {
+        logger.debug('Reporter priority change notifications disabled', {
+          projectId: report.projectId,
+        });
+        return;
+      }
+
+      const result = await emailService.sendReporterPriorityChangeEmail(report.reporterEmail, {
+        report,
+        projectName: project.name,
+        appName: settings.appName || 'BugPin',
+        appUrl: settings.appUrl || '',
+        oldPriority,
+        newPriority,
+      });
+
+      if (result.success) {
+        logger.info('Reporter priority change notification sent', {
+          reportId: report.id,
+          reporterEmail: report.reporterEmail,
+        });
+      } else {
+        logger.warn('Reporter priority change notification failed', {
+          reportId: report.id,
+          error: result.error,
+        });
+      }
+    } catch (error) {
+      logger.error('Failed to send reporter priority change notification', {
+        reportId: report.id,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  },
+
+  /**
+   * Update notification preferences for all projects at once
+   */
+  async updateAllUserPreferences(
+    userId: string,
+    input: UpdateNotificationPreferencesInput,
+  ): Promise<Result<NotificationPreferences[]>> {
+    const projects = await projectsRepo.findAll();
+    const results: NotificationPreferences[] = [];
+
+    for (const project of projects) {
+      const prefs = await notificationPreferencesRepo.upsert(userId, project.id, input);
+      results.push(prefs);
+    }
+
+    logger.info('User notification preferences updated for all projects', {
+      userId,
+      projectCount: results.length,
+    });
+
+    return Result.ok(results);
   },
 };

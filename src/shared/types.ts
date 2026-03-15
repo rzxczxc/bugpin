@@ -184,6 +184,7 @@ export interface ProjectSettings {
     customFields?: CustomField[];
   };
   notifyReporter?: boolean;
+  reporterNotifications?: Partial<ReporterNotificationSettings>;
   // Legacy widget settings (for backward compatibility during migration)
   widget?: {
     enabled?: boolean;
@@ -327,6 +328,13 @@ export interface NotificationDefaultSettings {
   notifyOnDeletion: boolean;
 }
 
+// Reporter notification settings
+export interface ReporterNotificationSettings {
+  notifyOnStatusChange: boolean;
+  notifyOnPriorityChange: boolean;
+  messagingEnabled: boolean;
+}
+
 // Admin Console button colors
 export interface AdminButtonColors {
   lightButtonColor: string;
@@ -427,6 +435,8 @@ export interface AppSettings {
   branding: BrandingSettings;
   // Admin Console settings
   adminButton: AdminButtonColors;
+  // Reporter notification settings
+  reporterNotifications: ReporterNotificationSettings;
   // Email templates (optional - uses defaults if not set)
   emailTemplates?: EmailTemplates;
   // White-label settings (EE feature)
@@ -540,6 +550,7 @@ export type EmailTemplateType =
   | 'testEmail'
   | 'reporterConfirmation'
   | 'reporterStatusChange'
+  | 'reporterPriorityChange'
   | 'reporterMessage';
 
 export interface EmailTemplate {
@@ -557,6 +568,7 @@ export interface EmailTemplates {
   testEmail: EmailTemplate;
   reporterConfirmation: EmailTemplate;
   reporterStatusChange: EmailTemplate;
+  reporterPriorityChange: EmailTemplate;
   reporterMessage: EmailTemplate;
 }
 

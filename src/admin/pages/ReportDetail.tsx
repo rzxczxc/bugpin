@@ -51,6 +51,7 @@ import {
 } from 'lucide-react';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../components/ui/collapsible';
 import { Spinner } from '../components/ui/spinner';
+import type { AppSettings, Project } from '@shared/types';
 
 export function ReportDetail() {
   const { id } = useParams<{ id: string }>();
@@ -81,6 +82,26 @@ export function ReportDetail() {
 
   // Load integrations for this report's project
   const { data: integrations } = useIntegrations(data?.report?.projectId);
+
+  // Fetch global settings for messaging enabled check
+  const { data: settingsData } = useQuery({
+    queryKey: ['settings'],
+    queryFn: async () => {
+      const response = await api.get('/settings');
+      return response.data.settings as AppSettings;
+    },
+    enabled: !!data?.report?.projectId,
+  });
+
+  // Fetch project for per-project messaging settings
+  const { data: projectData } = useQuery({
+    queryKey: ['project', data?.report?.projectId],
+    queryFn: async () => {
+      const response = await api.get(`/projects/${data?.report?.projectId}`);
+      return response.data.project as Project;
+    },
+    enabled: !!data?.report?.projectId,
+  });
 
   // Reporter messages
   const {
@@ -162,6 +183,11 @@ export function ReportDetail() {
 
   const { report, files } = data;
 
+  const messagingEnabled =
+    projectData?.settings?.reporterNotifications?.messagingEnabled ??
+    settingsData?.reporterNotifications?.messagingEnabled ??
+    true;
+
   const handleSave = async () => {
     const updates: Record<string, string> = {};
     if (editData.status && editData.status !== report.status) updates.status = editData.status;
@@ -172,6 +198,7 @@ export function ReportDetail() {
       const shouldSendResolveMessage =
         updates.status === 'resolved' &&
         report.reporterEmail &&
+        messagingEnabled &&
         resolveMessage.trim();
 
       updateMutation.mutate(updates, {
@@ -707,7 +734,7 @@ export function ReportDetail() {
                         <SelectItem value="closed">Closed</SelectItem>
                       </SelectContent>
                     </Select>
-                    {editData.status === 'resolved' && report.reporterEmail && (
+                    {editData.status === 'resolved' && report.reporterEmail && messagingEnabled && (
                       <div className="mt-2 space-y-2">
                         <button
                           type="button"
@@ -836,7 +863,7 @@ export function ReportDetail() {
           </Card>
 
           {/* Reporter Messages */}
-          {report.reporterEmail && (
+          {report.reporterEmail && messagingEnabled && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

@@ -10,6 +10,7 @@ import type {
   WidgetLauncherButtonSettings,
   WidgetDialogSettings,
   ScreenshotSettings,
+  ReporterNotificationSettings,
 } from '@shared/types';
 import {
   Dialog,
@@ -70,6 +71,9 @@ export function ProjectSettingsDialog({
   const [notificationSettings, setNotificationSettings] = useState<
     Partial<NotificationDefaultSettings>
   >({});
+
+  // Reporter notification settings state
+  const [reporterSettings, setReporterSettings] = useState<Partial<ReporterNotificationSettings>>({});
 
   // Whitelist settings state
   const [useCustomWhitelist, setUseCustomWhitelist] = useState(false);
@@ -145,6 +149,10 @@ export function ProjectSettingsDialog({
       const hasCustomWhitelist = security?.allowedOrigins && security.allowedOrigins.length > 0;
       setUseCustomWhitelist(!!hasCustomWhitelist);
       setWhitelistSettings(security?.allowedOrigins || []);
+
+      // Reporter notification settings
+      const reporterConf = projectDetail.settings?.reporterNotifications;
+      setReporterSettings(reporterConf || {});
     }
   }, [projectDetail]);
 
@@ -240,6 +248,13 @@ export function ProjectSettingsDialog({
         };
       } else {
         newSettings.security = undefined;
+      }
+
+      // Reporter notification settings
+      if (useCustomNotifications && Object.keys(reporterSettings).length > 0) {
+        newSettings.reporterNotifications = reporterSettings as ProjectSettings['reporterNotifications'];
+      } else {
+        newSettings.reporterNotifications = undefined;
       }
 
       // Save project settings
@@ -350,6 +365,8 @@ export function ProjectSettingsDialog({
                   showCustomToggle
                   useCustomSettings={useCustomNotifications}
                   onCustomToggle={setUseCustomNotifications}
+                  reporterValue={reporterSettings}
+                  onReporterChange={setReporterSettings}
                 />
               </TabsContent>
 

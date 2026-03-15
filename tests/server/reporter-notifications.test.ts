@@ -212,14 +212,14 @@ describe('notificationsService.notifyReporterMessage', () => {
     );
   });
 
-  it('sends even when project setting notifyReporter is false', async () => {
+  it('skips when project setting notifyReporter is false', async () => {
     projectById = {
       ...baseProject,
       settings: { notifyReporter: false },
     };
-    // notifyReporterMessage does NOT check notifyReporter setting
+    // Legacy compat: notifyReporter=false disables all reporter notifications including messaging
     await notificationsService.notifyReporterMessage(baseReport, 'Hello', 'usr_1');
-    expect(sendReporterMessageEmail).toHaveBeenCalled();
+    expect(sendReporterMessageEmail).not.toHaveBeenCalled();
   });
 
   it('skips when report has no reporterEmail', async () => {
