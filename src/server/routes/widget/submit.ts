@@ -292,12 +292,28 @@ widget.get('/config/:apiKey', async (c) => {
     projDialog?.lightButtonHoverColor ?? globalDialog.lightButtonHoverColor;
   const dialogLightTextHoverColor =
     projDialog?.lightTextHoverColor ?? globalDialog.lightTextHoverColor;
+  const dialogLightBackgroundColor =
+    projDialog?.lightBackgroundColor ?? globalDialog.lightBackgroundColor;
+  const dialogLightSecondaryColor =
+    projDialog?.lightSecondaryColor ?? globalDialog.lightSecondaryColor;
+  const dialogLightInputColor =
+    projDialog?.lightInputColor ?? globalDialog.lightInputColor;
+  const dialogLightForegroundColor =
+    projDialog?.lightForegroundColor ?? globalDialog.lightForegroundColor;
   const dialogDarkButtonColor = projDialog?.darkButtonColor ?? globalDialog.darkButtonColor;
   const dialogDarkTextColor = projDialog?.darkTextColor ?? globalDialog.darkTextColor;
   const dialogDarkButtonHoverColor =
     projDialog?.darkButtonHoverColor ?? globalDialog.darkButtonHoverColor;
   const dialogDarkTextHoverColor =
     projDialog?.darkTextHoverColor ?? globalDialog.darkTextHoverColor;
+  const dialogDarkBackgroundColor =
+    projDialog?.darkBackgroundColor ?? globalDialog.darkBackgroundColor;
+  const dialogDarkSecondaryColor =
+    projDialog?.darkSecondaryColor ?? globalDialog.darkSecondaryColor;
+  const dialogDarkInputColor =
+    projDialog?.darkInputColor ?? globalDialog.darkInputColor;
+  const dialogDarkForegroundColor =
+    projDialog?.darkForegroundColor ?? globalDialog.darkForegroundColor;
 
   // Return widget configuration
   return c.json({
@@ -334,11 +350,19 @@ widget.get('/config/:apiKey', async (c) => {
       dialogLightTextColor,
       dialogLightButtonHoverColor,
       dialogLightTextHoverColor,
+      dialogLightBackgroundColor,
+      dialogLightSecondaryColor,
+      dialogLightInputColor,
+      dialogLightForegroundColor,
       // Dialog colors (dark mode)
       dialogDarkButtonColor,
       dialogDarkTextColor,
       dialogDarkButtonHoverColor,
       dialogDarkTextHoverColor,
+      dialogDarkBackgroundColor,
+      dialogDarkSecondaryColor,
+      dialogDarkInputColor,
+      dialogDarkForegroundColor,
       enableHoverScaleEffect,
       tooltipEnabled,
       tooltipText,

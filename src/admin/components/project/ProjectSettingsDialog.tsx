@@ -331,6 +331,7 @@ export function ProjectSettingsDialog({
                   showCustomToggle
                   useCustomSettings={useCustomWidgetDialog}
                   onCustomToggle={setUseCustomWidgetDialog}
+                  showCard={false}
                 />
               </TabsContent>
 

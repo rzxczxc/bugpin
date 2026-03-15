@@ -2,6 +2,7 @@ import { FunctionComponent } from 'preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { Icon } from './Icon.js';
 import { cn } from '../lib/utils';
+import { useEffectiveTheme } from '../hooks/use-effective-theme.js';
 
 interface WidgetLauncherButtonProps {
   position: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
@@ -54,7 +55,6 @@ export const WidgetLauncherButton: FunctionComponent<WidgetLauncherButtonProps> 
   onClick,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [tooltipOffset, setTooltipOffset] = useState({
     left: '50%',
     transform: 'translateX(-50%)',
@@ -62,25 +62,8 @@ export const WidgetLauncherButton: FunctionComponent<WidgetLauncherButtonProps> 
   });
   const tooltipRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-
-  // Detect theme on mount and when theme setting changes
-  useEffect(() => {
-    if (theme === 'dark') {
-      setIsDarkMode(true);
-      return;
-    } else if (theme === 'light') {
-      setIsDarkMode(false);
-      return;
-    }
-
-    // Auto mode: detect from page
-    const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDarkMode(darkModeMediaQuery.matches);
-
-    const handler = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-    darkModeMediaQuery.addEventListener('change', handler);
-    return () => darkModeMediaQuery.removeEventListener('change', handler);
-  }, [theme]);
+  const effectiveTheme = useEffectiveTheme(theme);
+  const isDarkMode = effectiveTheme === 'dark';
 
   // Calculate tooltip position to ensure 4px margin from window edges
   useEffect(() => {

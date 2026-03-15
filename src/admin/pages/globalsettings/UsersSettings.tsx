@@ -244,7 +244,7 @@ export function UsersSettings() {
                       >
                         <Badge
                           variant="outline"
-                          className={user.isActive ? 'status-active' : 'status-inactive'}
+                          className={`cursor-pointer ${user.isActive ? 'status-active' : 'status-inactive'}`}
                         >
                           {user.isActive ? 'Active' : 'Inactive'}
                         </Badge>

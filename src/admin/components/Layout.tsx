@@ -14,7 +14,10 @@ const hashToLabel: Record<string, string> = {
   design: 'Admin Console',
   widgetDialog: 'Widget Dialog',
   widgetLauncherButton: 'Widget Button',
-  notifications: 'SMTP',
+  notifications: 'Notifications',
+  reporterNotifications: 'Reporter',
+  smtp: 'SMTP',
+  emailTemplates: 'Email Templates',
   security: 'Rate Limits',
   users: 'Users',
 };

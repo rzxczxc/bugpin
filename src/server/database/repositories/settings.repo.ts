@@ -46,10 +46,18 @@ const DEFAULT_WIDGET_DIALOG: ThemeColors = {
   lightTextColor: '#ffffff',
   lightButtonHoverColor: '#024F6F',
   lightTextHoverColor: '#ffffff',
+  lightBackgroundColor: '#ffffff',
+  lightSecondaryColor: '#f5f5f5',
+  lightInputColor: '#ffffff',
+  lightForegroundColor: '#0a0a0a',
   darkButtonColor: '#02658D',
   darkTextColor: '#ffffff',
   darkButtonHoverColor: '#036F9B',
   darkTextHoverColor: '#ffffff',
+  darkBackgroundColor: '#0a0a0a',
+  darkSecondaryColor: '#262626',
+  darkInputColor: '#1a1a1a',
+  darkForegroundColor: '#fafafa',
 };
 
 const DEFAULT_SCREENSHOT: GlobalScreenshotSettings = {

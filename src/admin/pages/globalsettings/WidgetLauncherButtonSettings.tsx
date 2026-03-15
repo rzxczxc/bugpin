@@ -113,9 +113,6 @@ function WidgetLauncherButtonSettingsSection() {
 
   const handleReset = () => {
     setLocalEdits(DEFAULT_BUTTON_SETTINGS);
-    mutation.mutate({
-      widgetLauncherButton: DEFAULT_BUTTON_SETTINGS,
-    });
   };
 
   // Wait for settings to fully load before rendering the form

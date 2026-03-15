@@ -21,7 +21,7 @@ export const Input: FunctionComponent<InputProps> = ({
     <input
       type={type}
       class={cn(
-        'h-10 w-full px-3 py-2 border border-solid border-input rounded-sm text-sm font-sans text-foreground bg-transparent transition-colors',
+        'h-10 w-full px-3 py-2 border border-solid border-input rounded-sm text-sm font-sans text-foreground bg-[var(--input-background,transparent)] transition-colors',
         'placeholder:text-muted-foreground',
         'focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring/20',
         error && 'border-destructive focus:border-destructive focus:ring-destructive/20',

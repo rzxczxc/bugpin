@@ -9,10 +9,18 @@ const DEFAULT_WIDGET_COLORS: ThemeColors = {
   lightTextColor: '#ffffff',
   lightButtonHoverColor: '#024F6F',
   lightTextHoverColor: '#ffffff',
+  lightBackgroundColor: '#ffffff',
+  lightSecondaryColor: '#f5f5f5',
+  lightInputColor: '#ffffff',
+  lightForegroundColor: '#0a0a0a',
   darkButtonColor: '#02658D',
   darkTextColor: '#ffffff',
   darkButtonHoverColor: '#036F9B',
   darkTextHoverColor: '#ffffff',
+  darkBackgroundColor: '#0a0a0a',
+  darkSecondaryColor: '#262626',
+  darkInputColor: '#1a1a1a',
+  darkForegroundColor: '#fafafa',
 };
 
 interface WidgetDialogSettingsFormProps {
@@ -54,6 +62,22 @@ export function WidgetDialogSettingsForm({
       value.lightTextHoverColor ??
       globalWidgetColors?.lightTextHoverColor ??
       DEFAULT_WIDGET_COLORS.lightTextHoverColor,
+    lightBackgroundColor:
+      value.lightBackgroundColor ??
+      globalWidgetColors?.lightBackgroundColor ??
+      DEFAULT_WIDGET_COLORS.lightBackgroundColor,
+    lightSecondaryColor:
+      value.lightSecondaryColor ??
+      globalWidgetColors?.lightSecondaryColor ??
+      DEFAULT_WIDGET_COLORS.lightSecondaryColor,
+    lightInputColor:
+      value.lightInputColor ??
+      globalWidgetColors?.lightInputColor ??
+      DEFAULT_WIDGET_COLORS.lightInputColor,
+    lightForegroundColor:
+      value.lightForegroundColor ??
+      globalWidgetColors?.lightForegroundColor ??
+      DEFAULT_WIDGET_COLORS.lightForegroundColor,
     darkButtonColor:
       value.darkButtonColor ??
       globalWidgetColors?.darkButtonColor ??
@@ -70,6 +94,22 @@ export function WidgetDialogSettingsForm({
       value.darkTextHoverColor ??
       globalWidgetColors?.darkTextHoverColor ??
       DEFAULT_WIDGET_COLORS.darkTextHoverColor,
+    darkBackgroundColor:
+      value.darkBackgroundColor ??
+      globalWidgetColors?.darkBackgroundColor ??
+      DEFAULT_WIDGET_COLORS.darkBackgroundColor,
+    darkSecondaryColor:
+      value.darkSecondaryColor ??
+      globalWidgetColors?.darkSecondaryColor ??
+      DEFAULT_WIDGET_COLORS.darkSecondaryColor,
+    darkInputColor:
+      value.darkInputColor ??
+      globalWidgetColors?.darkInputColor ??
+      DEFAULT_WIDGET_COLORS.darkInputColor,
+    darkForegroundColor:
+      value.darkForegroundColor ??
+      globalWidgetColors?.darkForegroundColor ??
+      DEFAULT_WIDGET_COLORS.darkForegroundColor,
   };
 
   const handleColorChange = (colors: Partial<ThemeColors>) => {
@@ -79,7 +119,7 @@ export function WidgetDialogSettingsForm({
   const isDisabled = disabled || (showCustomToggle && !useCustomSettings);
 
   const colorPicker = (
-    <ThemeColorPicker value={currentColors} onChange={handleColorChange} disabled={isDisabled} />
+    <ThemeColorPicker value={currentColors} onChange={handleColorChange} disabled={isDisabled} showSurfaceColors />
   );
 
   return (

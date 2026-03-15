@@ -1,6 +1,7 @@
 import { Label } from './ui/label';
 import { Button } from './ui/button';
 import { ColorPicker } from './ui/color-picker';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import type { ThemeColors } from '@shared/types';
 
 interface ThemeColorPickerProps {
@@ -12,6 +13,7 @@ interface ThemeColorPickerProps {
   buttonColorLabel?: string;
   textColorLabel?: string;
   showGenerateButton?: boolean;
+  showSurfaceColors?: boolean;
 }
 
 // Utility function to generate dark mode colors from light mode colors
@@ -20,6 +22,10 @@ function generateDarkModeColors(lightColors: {
   textColor: string;
   buttonHoverColor: string;
   textHoverColor: string;
+  backgroundColor?: string;
+  secondaryColor?: string;
+  inputColor?: string;
+  foregroundColor?: string;
 }) {
   // Helper to parse hex color to RGB
   const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
@@ -50,13 +56,35 @@ function generateDarkModeColors(lightColors: {
     return rgbToHex(adjust(rgb.r), adjust(rgb.g), adjust(rgb.b));
   };
 
-  // Generate dark mode colors by lightening the light mode colors
-  return {
+  // Invert a color (light ↔ dark)
+  const invertColor = (hex: string): string => {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return hex;
+    return rgbToHex(255 - rgb.r, 255 - rgb.g, 255 - rgb.b);
+  };
+
+  const result: Partial<ThemeColors> = {
     darkButtonColor: adjustColor(lightColors.buttonColor, 80),
     darkTextColor: adjustColor(lightColors.textColor, -200),
     darkButtonHoverColor: adjustColor(lightColors.buttonHoverColor, 100),
     darkTextHoverColor: adjustColor(lightColors.textHoverColor, -200),
   };
+
+  // Generate surface colors if light mode values are provided
+  if (lightColors.backgroundColor) {
+    result.darkBackgroundColor = invertColor(lightColors.backgroundColor);
+  }
+  if (lightColors.secondaryColor) {
+    result.darkSecondaryColor = invertColor(lightColors.secondaryColor);
+  }
+  if (lightColors.inputColor) {
+    result.darkInputColor = invertColor(lightColors.inputColor);
+  }
+  if (lightColors.foregroundColor) {
+    result.darkForegroundColor = invertColor(lightColors.foregroundColor);
+  }
+
+  return result;
 }
 
 export function ThemeColorPicker({
@@ -66,8 +94,9 @@ export function ThemeColorPicker({
   lightModeTitle = 'Light Mode Colors',
   darkModeTitle = 'Dark Mode Colors',
   buttonColorLabel = 'Primary Color',
-  textColorLabel = 'Text Color',
+  textColorLabel = 'Button Text Color',
   showGenerateButton = true,
+  showSurfaceColors = false,
 }: ThemeColorPickerProps) {
   const handleGenerateDarkColors = () => {
     const generated = generateDarkModeColors({
@@ -75,15 +104,23 @@ export function ThemeColorPicker({
       textColor: value.lightTextColor,
       buttonHoverColor: value.lightButtonHoverColor,
       textHoverColor: value.lightTextHoverColor,
+      backgroundColor: value.lightBackgroundColor,
+      secondaryColor: value.lightSecondaryColor,
+      inputColor: value.lightInputColor,
+      foregroundColor: value.lightForegroundColor,
     });
     onChange(generated);
   };
 
   return (
-    <div className="space-y-4">
+    <Tabs defaultValue="light">
+      <TabsList>
+        <TabsTrigger value="light">{lightModeTitle}</TabsTrigger>
+        <TabsTrigger value="dark">{darkModeTitle}</TabsTrigger>
+      </TabsList>
+
       {/* Light Mode Colors */}
-      <div className="space-y-3">
-        <h4 className="text-sm font-medium">{lightModeTitle}</h4>
+      <TabsContent value="light" className="space-y-3 pt-2">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>{buttonColorLabel}</Label>
@@ -102,7 +139,7 @@ export function ThemeColorPicker({
             />
           </div>
           <div className="space-y-2">
-            <Label>{buttonColorLabel} (Button Hover)</Label>
+            <Label>{buttonColorLabel} (Hover)</Label>
             <ColorPicker
               value={value.lightButtonHoverColor}
               onChange={(color) => onChange({ lightButtonHoverColor: color })}
@@ -110,7 +147,7 @@ export function ThemeColorPicker({
             />
           </div>
           <div className="space-y-2">
-            <Label>{textColorLabel} (Button Hover)</Label>
+            <Label>{textColorLabel} (Hover)</Label>
             <ColorPicker
               value={value.lightTextHoverColor}
               onChange={(color) => onChange({ lightTextHoverColor: color })}
@@ -118,13 +155,48 @@ export function ThemeColorPicker({
             />
           </div>
         </div>
-      </div>
+        {showSurfaceColors && (
+          <div className="grid grid-cols-2 gap-4 pt-2">
+            <div className="space-y-2">
+              <Label>Background Color</Label>
+              <ColorPicker
+                value={value.lightBackgroundColor ?? '#ffffff'}
+                onChange={(color) => onChange({ lightBackgroundColor: color })}
+                disabled={disabled}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Secondary Color</Label>
+              <ColorPicker
+                value={value.lightSecondaryColor ?? '#f5f5f5'}
+                onChange={(color) => onChange({ lightSecondaryColor: color })}
+                disabled={disabled}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Input Field Color</Label>
+              <ColorPicker
+                value={value.lightInputColor ?? '#ffffff'}
+                onChange={(color) => onChange({ lightInputColor: color })}
+                disabled={disabled}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Text Color</Label>
+              <ColorPicker
+                value={value.lightForegroundColor ?? '#0a0a0a'}
+                onChange={(color) => onChange({ lightForegroundColor: color })}
+                disabled={disabled}
+              />
+            </div>
+          </div>
+        )}
+      </TabsContent>
 
       {/* Dark Mode Colors */}
-      <div className="space-y-3 border-t pt-4">
-        <div className="flex items-center justify-between">
-          <h4 className="text-sm font-medium">{darkModeTitle}</h4>
-          {showGenerateButton && (
+      <TabsContent value="dark" className="space-y-3 pt-2">
+        {showGenerateButton && (
+          <div className="flex justify-end">
             <Button
               variant="outline"
               size="sm"
@@ -134,8 +206,8 @@ export function ThemeColorPicker({
             >
               Generate from Light Mode
             </Button>
-          )}
-        </div>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>{buttonColorLabel}</Label>
@@ -154,7 +226,7 @@ export function ThemeColorPicker({
             />
           </div>
           <div className="space-y-2">
-            <Label>{buttonColorLabel} (Button Hover)</Label>
+            <Label>{buttonColorLabel} (Hover)</Label>
             <ColorPicker
               value={value.darkButtonHoverColor}
               onChange={(color) => onChange({ darkButtonHoverColor: color })}
@@ -162,7 +234,7 @@ export function ThemeColorPicker({
             />
           </div>
           <div className="space-y-2">
-            <Label>{textColorLabel} (Button Hover)</Label>
+            <Label>{textColorLabel} (Hover)</Label>
             <ColorPicker
               value={value.darkTextHoverColor}
               onChange={(color) => onChange({ darkTextHoverColor: color })}
@@ -170,7 +242,43 @@ export function ThemeColorPicker({
             />
           </div>
         </div>
-      </div>
-    </div>
+        {showSurfaceColors && (
+          <div className="grid grid-cols-2 gap-4 pt-2">
+            <div className="space-y-2">
+              <Label>Background Color</Label>
+              <ColorPicker
+                value={value.darkBackgroundColor ?? '#0a0a0a'}
+                onChange={(color) => onChange({ darkBackgroundColor: color })}
+                disabled={disabled}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Secondary Color</Label>
+              <ColorPicker
+                value={value.darkSecondaryColor ?? '#262626'}
+                onChange={(color) => onChange({ darkSecondaryColor: color })}
+                disabled={disabled}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Input Field Color</Label>
+              <ColorPicker
+                value={value.darkInputColor ?? '#1a1a1a'}
+                onChange={(color) => onChange({ darkInputColor: color })}
+                disabled={disabled}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Text Color</Label>
+              <ColorPicker
+                value={value.darkForegroundColor ?? '#fafafa'}
+                onChange={(color) => onChange({ darkForegroundColor: color })}
+                disabled={disabled}
+              />
+            </div>
+          </div>
+        )}
+      </TabsContent>
+    </Tabs>
   );
 }

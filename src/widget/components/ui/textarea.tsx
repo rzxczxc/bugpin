@@ -17,7 +17,7 @@ export const Textarea: FunctionComponent<TextareaProps> = ({
   return (
     <textarea
       class={cn(
-        'min-h-20 w-full px-3 py-2 border border-solid border-input rounded-sm text-sm font-sans text-foreground bg-transparent resize-y transition-colors',
+        'min-h-20 w-full px-3 py-2 border border-solid border-input rounded-sm text-sm font-sans text-foreground bg-[var(--input-background,transparent)] resize-y transition-colors',
         'placeholder:text-muted-foreground',
         'focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring/20',
         error && 'border-destructive focus:border-destructive focus:ring-destructive/20',

@@ -10,18 +10,9 @@ import { captureScreenshot } from '../capture/screenshot.js';
 import { captureContext } from '../capture/context.js';
 import { submitReport } from '../api/submit.js';
 import { draftStorage } from '../storage/draft-storage.js';
+import { useEffectiveTheme } from '../hooks/use-effective-theme.js';
 
 type WidgetStep = 'closed' | 'form' | 'annotating';
-
-/**
- * Determine the effective theme (light/dark) based on config and system preference
- */
-function getEffectiveTheme(theme: 'auto' | 'light' | 'dark'): 'light' | 'dark' {
-  if (theme === 'auto') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-  return theme;
-}
 
 const INITIAL_FORM_DATA: FormData = {
   title: '',
@@ -51,6 +42,7 @@ export const App: FunctionComponent<AppProps> = ({ config, deps }) => {
   const captureContextFn = deps?.captureContext ?? captureContext;
   const submitReportFn = deps?.submitReport ?? submitReport;
   const containerRef = useRef<HTMLDivElement>(null);
+  const effectiveTheme = useEffectiveTheme(config.theme);
   const [step, setStep] = useState<WidgetStep>('closed');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -83,47 +75,43 @@ export const App: FunctionComponent<AppProps> = ({ config, deps }) => {
     const container = containerRef.current;
     if (!container) return;
 
-    const applyThemeColors = () => {
-      const effectiveTheme = getEffectiveTheme(config.theme);
-
-      if (effectiveTheme === 'dark') {
-        // Dialog colors for dark mode
-        container.style.setProperty('--button-color', config.dialogDarkButtonColor);
-        container.style.setProperty('--button-text-color', config.dialogDarkTextColor);
-        container.style.setProperty('--button-hover-color', config.dialogDarkButtonHoverColor);
-        container.style.setProperty('--button-hover-text-color', config.dialogDarkTextHoverColor);
-      } else {
-        // Dialog colors for light mode
-        container.style.setProperty('--button-color', config.dialogLightButtonColor);
-        container.style.setProperty('--button-text-color', config.dialogLightTextColor);
-        container.style.setProperty('--button-hover-color', config.dialogLightButtonHoverColor);
-        container.style.setProperty('--button-hover-text-color', config.dialogLightTextHoverColor);
-      }
-    };
-
-    // Apply initial colors
-    applyThemeColors();
-
-    // Listen for system theme changes when in auto mode
-    if (config.theme === 'auto') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handleChange = () => applyThemeColors();
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
+    if (effectiveTheme === 'dark') {
+      container.style.setProperty('--button-color', config.dialogDarkButtonColor);
+      container.style.setProperty('--button-text-color', config.dialogDarkTextColor);
+      container.style.setProperty('--button-hover-color', config.dialogDarkButtonHoverColor);
+      container.style.setProperty('--button-hover-text-color', config.dialogDarkTextHoverColor);
+      container.style.setProperty('--background', config.dialogDarkBackgroundColor);
+      container.style.setProperty('--muted', config.dialogDarkSecondaryColor);
+      container.style.setProperty('--input-background', config.dialogDarkInputColor);
+      container.style.setProperty('--foreground', config.dialogDarkForegroundColor);
+    } else {
+      container.style.setProperty('--button-color', config.dialogLightButtonColor);
+      container.style.setProperty('--button-text-color', config.dialogLightTextColor);
+      container.style.setProperty('--button-hover-color', config.dialogLightButtonHoverColor);
+      container.style.setProperty('--button-hover-text-color', config.dialogLightTextHoverColor);
+      container.style.setProperty('--background', config.dialogLightBackgroundColor);
+      container.style.setProperty('--muted', config.dialogLightSecondaryColor);
+      container.style.setProperty('--input-background', config.dialogLightInputColor);
+      container.style.setProperty('--foreground', config.dialogLightForegroundColor);
     }
-
-    // No cleanup needed when not in auto mode
-    return undefined;
   }, [
-    config.theme,
+    effectiveTheme,
     config.dialogLightButtonColor,
     config.dialogLightTextColor,
     config.dialogLightButtonHoverColor,
     config.dialogLightTextHoverColor,
+    config.dialogLightBackgroundColor,
+    config.dialogLightSecondaryColor,
+    config.dialogLightInputColor,
+    config.dialogLightForegroundColor,
     config.dialogDarkButtonColor,
     config.dialogDarkTextColor,
     config.dialogDarkButtonHoverColor,
     config.dialogDarkTextHoverColor,
+    config.dialogDarkBackgroundColor,
+    config.dialogDarkSecondaryColor,
+    config.dialogDarkInputColor,
+    config.dialogDarkForegroundColor,
   ]);
 
   const handleOpenWidget = useCallback(() => {
@@ -379,7 +367,7 @@ export const App: FunctionComponent<AppProps> = ({ config, deps }) => {
     : null;
 
   return (
-    <div ref={containerRef} class={`bugpin-container bugpin-theme-${config.theme}`}>
+    <div ref={containerRef} class={`bugpin-container bugpin-theme-${effectiveTheme}`}>
       <WidgetLauncherButton
         position={config.position}
         buttonText={config.buttonText}

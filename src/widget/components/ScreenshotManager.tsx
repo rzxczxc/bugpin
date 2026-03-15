@@ -197,7 +197,7 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
 
       {/* Error message */}
       {uploadError && (
-        <div class="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-solid border-red-200 rounded text-red-600 text-sm">
+        <div class="flex items-center gap-2 px-3 py-2.5 bg-red-50 dark:bg-red-950/50 border border-solid border-red-200 dark:border-red-800 rounded text-red-600 dark:text-red-400 text-sm">
           <svg
             class="w-4.5 h-4.5 flex-shrink-0"
             viewBox="0 0 24 24"
@@ -225,11 +225,11 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
       >
         {media.length === 0 ? (
           <div
-            class="flex flex-col items-center justify-center py-8 px-4 text-gray-500 text-center cursor-pointer transition-colors hover:text-primary [&_svg]:hover:text-primary"
+            class="flex flex-col items-center justify-center py-8 px-4 text-muted-foreground text-center cursor-pointer transition-colors hover:text-primary [&_svg]:hover:text-primary"
             onClick={handleUploadClick}
           >
             <svg
-              class="w-12 h-12 mb-3 text-gray-400 transition-colors"
+              class="w-12 h-12 mb-3 text-muted-foreground transition-colors"
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -239,7 +239,7 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
               />
             </svg>
             <p class="text-sm font-medium mb-1">Drag and drop files here</p>
-            <span class="text-xs text-gray-400">or click to browse</span>
+            <span class="text-xs text-muted-foreground">or click to browse</span>
           </div>
         ) : (
           <div class="grid grid-cols-2 gap-3 p-3">
@@ -257,18 +257,18 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
                   {/* Badges */}
                   <div class="absolute top-1.5 left-1.5 flex gap-1">
                     {item.annotated && (
-                      <span class="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-blue-100 text-blue-700">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-blue-100 dark:bg-blue-900/70 text-blue-700 dark:text-blue-300">
                         Annotated
                       </span>
                     )}
                     {isVideo(item.mimeType) && (
-                      <span class="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-gray-200 text-gray-700">
+                      <span class="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                         Video
                       </span>
                     )}
                   </div>
                 </div>
-                <div class="flex justify-between px-2 py-1.5 text-xs text-gray-500 border-t border-solid border-gray-200">
+                <div class="flex justify-between px-2 py-1.5 text-xs text-muted-foreground border-t border-solid border-border">
                   <span>{formatTimestamp(item.timestamp)}</span>
                   {item.width && item.height && (
                     <span>
@@ -276,12 +276,12 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
                     </span>
                   )}
                 </div>
-                <div class="flex gap-1 px-2 py-1.5 border-t border-solid border-gray-200 bg-gray-50">
+                <div class="flex gap-1 px-2 py-1.5 border-t border-solid border-border bg-muted">
                   {enableAnnotation && isImage(item.mimeType) && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      class="w-7 h-7 bg-white hover:bg-gray-200"
+                      class="w-7 h-7 bg-background hover:bg-muted text-foreground"
                       onClick={() => onAnnotate(item.id)}
                       title="Annotate"
                     >
@@ -296,7 +296,7 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    class="w-7 h-7 bg-white hover:bg-red-50 hover:text-red-600"
+                    class="w-7 h-7 bg-background hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 text-foreground"
                     onClick={() => onRemove(item.id)}
                     title="Remove"
                   >
@@ -316,20 +316,20 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
               onClick={handleUploadClick}
             >
               <svg
-                class="w-8 h-8 text-gray-400 transition-colors"
+                class="w-8 h-8 text-muted-foreground transition-colors"
                 viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor" />
               </svg>
-              <span class="text-xs text-gray-400 transition-colors">Add more</span>
+              <span class="text-xs text-muted-foreground transition-colors">Add more</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Helper text */}
-      <p class="text-xs text-gray-400 text-center">
+      <p class="text-xs text-muted-foreground text-center">
         Supported: PNG, JPG, GIF, WebP (max 10MB) - MP4, WebM, MOV, AVI (max 50MB)
       </p>
     </div>

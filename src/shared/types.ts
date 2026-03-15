@@ -109,10 +109,18 @@ export interface ThemeColors {
   lightTextColor: string;
   lightButtonHoverColor: string;
   lightTextHoverColor: string;
+  lightBackgroundColor?: string;
+  lightSecondaryColor?: string;
+  lightInputColor?: string;
+  lightForegroundColor?: string;
   darkButtonColor: string;
   darkTextColor: string;
   darkButtonHoverColor: string;
   darkTextHoverColor: string;
+  darkBackgroundColor?: string;
+  darkSecondaryColor?: string;
+  darkInputColor?: string;
+  darkForegroundColor?: string;
 }
 
 // Widget Launcher Button settings
@@ -144,10 +152,18 @@ export interface WidgetDialogSettings {
   lightTextColor?: string;
   lightButtonHoverColor?: string;
   lightTextHoverColor?: string;
+  lightBackgroundColor?: string;
+  lightSecondaryColor?: string;
+  lightInputColor?: string;
+  lightForegroundColor?: string;
   darkButtonColor?: string;
   darkTextColor?: string;
   darkButtonHoverColor?: string;
   darkTextHoverColor?: string;
+  darkBackgroundColor?: string;
+  darkSecondaryColor?: string;
+  darkInputColor?: string;
+  darkForegroundColor?: string;
 }
 
 // Screenshot settings

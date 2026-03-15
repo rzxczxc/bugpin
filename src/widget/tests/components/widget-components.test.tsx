@@ -40,10 +40,18 @@ const baseConfig: WidgetConfig = {
   dialogLightTextColor: '#ffffff',
   dialogLightButtonHoverColor: '#111111',
   dialogLightTextHoverColor: '#ffffff',
+  dialogLightBackgroundColor: '#ffffff',
+  dialogLightSecondaryColor: '#f5f5f5',
+  dialogLightInputColor: '#ffffff',
+  dialogLightForegroundColor: '#0a0a0a',
   dialogDarkButtonColor: '#000000',
   dialogDarkTextColor: '#ffffff',
   dialogDarkButtonHoverColor: '#111111',
   dialogDarkTextHoverColor: '#ffffff',
+  dialogDarkBackgroundColor: '#0a0a0a',
+  dialogDarkSecondaryColor: '#262626',
+  dialogDarkInputColor: '#1a1a1a',
+  dialogDarkForegroundColor: '#fafafa',
   enableHoverScaleEffect: true,
   tooltipEnabled: false,
   tooltipText: null,
@@ -320,7 +328,7 @@ describe('widget components', () => {
     const { App } = await import('../../components/App');
     const html = renderToString(<App config={baseConfig} />);
     expect(html).toContain('bugpin-container');
-    expect(html).toContain('bugpin-theme-auto');
+    expect(html).toContain('bugpin-theme-light');
     expect(html).toContain('Report issue');
 
     globalThis.window = originalWindow;

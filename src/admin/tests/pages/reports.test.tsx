@@ -97,13 +97,16 @@ describe('Reports Page - GitHub Sync Status', () => {
     await waitFor(
       () => {
         // Look for the synced report's row
-        expect(screen.getByText('Button not working')).toBeInTheDocument();
+        expect(screen.getAllByText('Button not working')[0]).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
 
     // Should have a link to the GitHub issue
-    const githubLink = screen.getByRole('link', { name: '' });
+    const githubLinks = screen.getAllByRole('link', { name: '' });
+    const githubLink = githubLinks.find((el) =>
+      el.getAttribute('href')?.includes('github.com'),
+    );
     expect(githubLink).toHaveAttribute('href', 'https://github.com/testorg/testrepo/issues/42');
   });
 
@@ -112,7 +115,7 @@ describe('Reports Page - GitHub Sync Status', () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText('Form validation issue')).toBeInTheDocument();
+        expect(screen.getAllByText('Form validation issue')[0]).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
@@ -128,7 +131,7 @@ describe('Reports Page - GitHub Sync Status', () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText('Page layout broken')).toBeInTheDocument();
+        expect(screen.getAllByText('Page layout broken')[0]).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
@@ -144,13 +147,16 @@ describe('Reports Page - GitHub Sync Status', () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText('Button not working')).toBeInTheDocument();
+        expect(screen.getAllByText('Button not working')[0]).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
 
     // The synced indicator should be inside a TooltipTrigger
-    const githubLink = screen.getByRole('link', { name: '' });
+    const githubLinks = screen.getAllByRole('link', { name: '' });
+    const githubLink = githubLinks.find((el) =>
+      el.getAttribute('href')?.includes('github.com'),
+    );
     expect(githubLink).toBeInTheDocument();
   });
 });
@@ -161,7 +167,7 @@ describe('Reports Page - Bulk Actions', () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText('Button not working')).toBeInTheDocument();
+        expect(screen.getAllByText('Button not working')[0]).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
@@ -177,7 +183,7 @@ describe('Reports Page - Bulk Actions', () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText('Button not working')).toBeInTheDocument();
+        expect(screen.getAllByText('Button not working')[0]).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
@@ -203,14 +209,14 @@ describe('Reports Page - Bulk Actions', () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText('Button not working')).toBeInTheDocument();
+        expect(screen.getAllByText('Button not working')[0]).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
 
-    // Click the header checkbox (first checkbox)
-    const checkboxes = screen.getAllByRole('checkbox');
-    await user.click(checkboxes[0]);
+    // Click the "Select all" header checkbox
+    const selectAllCheckbox = screen.getByRole('checkbox', { name: /select all/i });
+    await user.click(selectAllCheckbox);
 
     // Should show multiple reports selected
     await waitFor(() => {
@@ -224,7 +230,7 @@ describe('Reports Page - Bulk Actions', () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText('Button not working')).toBeInTheDocument();
+        expect(screen.getAllByText('Button not working')[0]).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
@@ -252,7 +258,7 @@ describe('Reports Page - Bulk Actions', () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText('Button not working')).toBeInTheDocument();
+        expect(screen.getAllByText('Button not working')[0]).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
