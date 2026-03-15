@@ -69,6 +69,11 @@ const TEMPLATE_TYPES: { value: EmailTemplateType; label: string; description: st
     description: 'Sent to the reporter when report status changes',
   },
   {
+    value: 'reporterPriorityChange',
+    label: 'Reporter Priority Change',
+    description: 'Sent to the reporter when report priority changes',
+  },
+  {
     value: 'reporterMessage',
     label: 'Reporter Message',
     description: 'Sent to the reporter when an admin sends a direct message',
@@ -161,6 +166,17 @@ const TEMPLATE_VARIABLES: Record<EmailTemplateType, string[]> = {
     'newStatusFormatted',
     'reporterMessage',
     'reporterMessageDisplay',
+  ],
+  reporterPriorityChange: [
+    'app.name',
+    'app.url',
+    'project.name',
+    'report.title',
+    'report.description',
+    'oldPriority',
+    'oldPriorityFormatted',
+    'newPriority',
+    'newPriorityFormatted',
   ],
   reporterMessage: [
     'app.name',

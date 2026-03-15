@@ -116,6 +116,17 @@ export const templateVariables: Record<EmailTemplateType, string[]> = {
     'reporterMessage',
     'reporterMessageDisplay',
   ],
+  reporterPriorityChange: [
+    'app.name',
+    'app.url',
+    'project.name',
+    'report.title',
+    'report.description',
+    'oldPriority',
+    'oldPriorityFormatted',
+    'newPriority',
+    'newPriorityFormatted',
+  ],
   reporterMessage: [
     'app.name',
     'app.url',
@@ -452,6 +463,40 @@ export const defaultEmailTemplates: EmailTemplates = {
 </body>
 </html>`,
   },
+  reporterPriorityChange: {
+    subject: 'Priority update on your bug report: {{report.title}}',
+    html: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    ${emailStyles}
+    .priority-change { background: white; padding: 15px; border-radius: 6px; margin: 15px 0; text-align: center; }
+    .arrow { color: #6b7280; margin: 0 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin: 0; font-size: 24px;">Report Priority Updated</h1>
+      <p style="margin: 10px 0 0 0; opacity: 0.9;">{{app.name}}</p>
+    </div>
+    <div class="content">
+      <h2 style="margin-top: 0;">{{report.title}}</h2>
+      <p style="color: #4b5563;">The priority of your bug report has been updated.</p>
+
+      <div class="priority-change">
+        <strong style="color: #6b7280;">{{oldPriorityFormatted}}</strong>
+        <span class="arrow">&rarr;</span>
+        <strong style="color: ${BRAND_COLOR_PLACEHOLDER};">{{newPriorityFormatted}}</strong>
+      </div>
+
+      <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">Thank you for your report. We will continue to keep you updated on any changes.</p>
+    </div>
+  </div>
+</body>
+</html>`,
+  },
   reporterMessage: {
     subject: 'Message about your bug report: {{report.title}}',
     html: `<!DOCTYPE html>
@@ -637,6 +682,25 @@ export function getSampleDataForTemplate(
         reporterMessage:
           'We have identified the issue and are working on a fix. Expect a resolution within the next 24 hours.',
         reporterMessageDisplay: 'block',
+      };
+
+    case 'reporterPriorityChange':
+      return {
+        ...baseData,
+        project: {
+          name: 'Sample Project',
+        },
+        report: {
+          title: 'Button not working on checkout page',
+          description:
+            'When clicking the "Complete Purchase" button, nothing happens. The page stays the same and no error is shown.',
+          priority: 'high',
+          priorityFormatted: 'High',
+        },
+        oldPriority: 'medium',
+        oldPriorityFormatted: 'Medium',
+        newPriority: 'high',
+        newPriorityFormatted: 'High',
       };
 
     case 'reporterMessage':
