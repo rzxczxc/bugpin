@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ThemeColorPicker } from '../../components/ThemeColorPicker';
 import { ColorPicker } from '../../components/ui/color-picker';
 
@@ -12,7 +13,7 @@ vi.mock('react-colorful', () => ({
 }));
 
 describe('ThemeColorPicker', () => {
-  it('generates dark mode colors from light mode values', () => {
+  it('generates dark mode colors from light mode values', async () => {
     const onChange = vi.fn();
 
     render(
@@ -31,7 +32,15 @@ describe('ThemeColorPicker', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /generate from light mode/i }));
+    // Switch to dark mode tab where the generate button lives
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('tab', { name: /dark mode/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /generate from light mode/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /generate from light mode/i }));
 
     expect(onChange).toHaveBeenCalledWith({
       darkButtonColor: '#505050',

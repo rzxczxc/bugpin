@@ -89,18 +89,12 @@ describe('Widget settings pages', () => {
       expect(toast.success).toHaveBeenCalled();
     });
 
+    // Reset to default should only load defaults into form, not save
+    brandingApiMocks.updateWidgetPrimaryColors.mockClear();
     await user.click(screen.getByRole('button', { name: /reset to default/i }));
 
-    await waitFor(() => {
-      const calls = brandingApiMocks.updateWidgetPrimaryColors.mock.calls;
-      const lastCall = calls[calls.length - 1] ?? [];
-      expect(lastCall[0]).toEqual(
-        expect.objectContaining({
-          lightButtonColor: '#02658D',
-          darkButtonColor: '#02658D',
-        }),
-      );
-    });
+    // Verify it did NOT trigger a save
+    expect(brandingApiMocks.updateWidgetPrimaryColors).not.toHaveBeenCalled();
   });
 
   it('saves and resets widget launcher button settings', async () => {
@@ -128,18 +122,11 @@ describe('Widget settings pages', () => {
       expect(toast.success).toHaveBeenCalled();
     });
 
+    // Reset to default should only load defaults into form, not save
+    putSpy.mockClear();
     await user.click(screen.getByRole('button', { name: /reset to default/i }));
 
-    await waitFor(() => {
-      expect(putSpy).toHaveBeenCalledWith(
-        '/settings',
-        expect.objectContaining({
-          widgetLauncherButton: expect.objectContaining({
-            buttonIcon: 'bug',
-            tooltipText: 'Found a bug?',
-          }),
-        }),
-      );
-    });
+    // Verify it did NOT trigger a save
+    expect(putSpy).not.toHaveBeenCalled();
   });
 });
