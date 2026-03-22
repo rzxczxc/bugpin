@@ -43,10 +43,7 @@ interface FeatureGateProps {
   children: React.ReactNode;
 }
 
-/**
- * Wrapper component that shows upgrade prompt if feature is not licensed
- */
-function FeatureGate({
+export function FeatureGate({
   feature,
   isLicensed,
   title,
