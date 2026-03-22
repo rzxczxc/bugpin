@@ -50,12 +50,9 @@ jobs:
           echo "CHANGELOG_EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: BugPin ${{ steps.version.outputs.version }}
+          name: BugPin ${{ steps.version.outputs.version }}
           body: |
             ${{ steps.changelog.outputs.body }}
 
