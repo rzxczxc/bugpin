@@ -72,7 +72,7 @@ const es: WidgetCatalog = {
   'screenshot.error.videoTooLarge': 'El vídeo es demasiado grande. El tamaño máximo es {size} MB.',
   'screenshot.error.unsupportedFile': 'Tipo de archivo no compatible: {type}',
 
-  'toast.success.submit': '¡Informe de error enviado correctamente!',
+  'toast.success.submit': '¡Informe enviado correctamente!',
   'toast.error.submit': 'No se ha podido enviar el informe',
   'toast.error.capture': 'No se ha podido capturar la pantalla',
 
