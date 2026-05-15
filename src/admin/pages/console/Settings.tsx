@@ -122,7 +122,7 @@ function SettingsSection() {
               {...register('appName')}
               aria-invalid={!!errors.appName}
             />
-            {errors.appName && <p className="text-sm text-destructive">{errors.appName.message}</p>}
+            {errors.appName && <p className="text-xs text-destructive">{errors.appName.message}</p>}
             <p className="text-xs text-muted-foreground">
               Used as the sender name in email notifications
             </p>
@@ -137,7 +137,7 @@ function SettingsSection() {
               {...register('appUrl')}
               aria-invalid={!!errors.appUrl}
             />
-            {errors.appUrl && <p className="text-sm text-destructive">{errors.appUrl.message}</p>}
+            {errors.appUrl && <p className="text-xs text-destructive">{errors.appUrl.message}</p>}
             <p className="text-xs text-muted-foreground">
               Used for generating links in email notifications and GitHub issues
             </p>
@@ -156,7 +156,7 @@ function SettingsSection() {
               aria-invalid={!!errors.retentionDays}
             />
             {errors.retentionDays && (
-              <p className="text-sm text-destructive">{errors.retentionDays.message}</p>
+              <p className="text-xs text-destructive">{errors.retentionDays.message}</p>
             )}
             <p className="text-xs text-muted-foreground">
               Time to keep bug reports before automatic deletion. (1-3650 days) Set to 0 to never

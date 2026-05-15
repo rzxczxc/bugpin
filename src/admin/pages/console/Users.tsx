@@ -236,7 +236,7 @@ export function Users() {
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
-                          className="h-11 w-[240px] justify-between text-left font-normal"
+                          className="h-9 w-[240px] justify-between text-left font-normal"
                         >
                           <span className="truncate">
                             {getDefaultProjectsLabel(getDefaultProjects(user))}
@@ -484,7 +484,7 @@ function InviteUserModal({
                 {...register('name')}
                 aria-invalid={!!errors.name}
               />
-              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+              {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="user-email">
@@ -497,7 +497,7 @@ function InviteUserModal({
                 {...register('email')}
                 aria-invalid={!!errors.email}
               />
-              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+              {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="user-role">Role</Label>

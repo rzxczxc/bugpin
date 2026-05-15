@@ -212,7 +212,7 @@ export function AcceptInvitation() {
                 {...register('name')}
                 aria-invalid={!!errors.name}
               />
-              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+              {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -227,7 +227,7 @@ export function AcceptInvitation() {
                 aria-invalid={!!errors.password}
               />
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+                <p className="text-xs text-destructive">{errors.password.message}</p>
               )}
             </div>
 
@@ -243,7 +243,7 @@ export function AcceptInvitation() {
                 aria-invalid={!!errors.confirmPassword}
               />
               {errors.confirmPassword && (
-                <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+                <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
               )}
             </div>
 

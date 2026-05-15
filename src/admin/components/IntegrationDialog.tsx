@@ -424,7 +424,7 @@ export function IntegrationDialog({
                   {...register('name')}
                   aria-invalid={!!errors.name}
                 />
-                {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+                {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
               </div>
 
               <div className="space-y-2">
@@ -483,7 +483,7 @@ export function IntegrationDialog({
                       )}
                     </div>
                     {errors.accessToken && (
-                      <p className="text-sm text-destructive">{errors.accessToken.message}</p>
+                      <p className="text-xs text-destructive">{errors.accessToken.message}</p>
                     )}
                   </>
                 )}
@@ -554,7 +554,7 @@ export function IntegrationDialog({
                 )}
 
                 {(errors.owner || errors.repo) && (
-                  <p className="text-sm text-destructive">Please select a repository</p>
+                  <p className="text-xs text-destructive">Please select a repository</p>
                 )}
 
                 {/* Hidden inputs for form validation */}

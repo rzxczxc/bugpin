@@ -642,7 +642,7 @@ function CreateProjectModal({
                 {...register('name')}
                 aria-invalid={!!errors.name}
               />
-              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+              {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
             </div>
           </div>
           <DialogFooter>

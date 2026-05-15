@@ -5,10 +5,10 @@ import {
   ClipboardList,
   FolderKanban,
   Bug,
-  MessageSquare,
+  AppWindow,
   Camera,
   Languages,
-  Server,
+  Settings as SettingsIcon,
   Bell,
   UsersRound,
   Shield,
@@ -53,13 +53,13 @@ const navItems: NavItem[] = [
 
 const widgetItems: NavItem[] = [
   { title: 'Button', url: '/button', icon: Bug },
-  { title: 'Dialog', url: '/dialog', icon: MessageSquare },
+  { title: 'Dialog', url: '/dialog', icon: AppWindow },
   { title: 'Screenshot', url: '/screenshot', icon: Camera },
   { title: 'Language', url: '/language', icon: Languages },
 ];
 
 const consoleItems: NavItem[] = [
-  { title: 'Settings', url: '/settings', icon: Server },
+  { title: 'Settings', url: '/settings', icon: SettingsIcon },
   { title: 'Notifications', url: '/notifications', icon: Bell },
   { title: 'Users', url: '/users', icon: UsersRound },
   { title: 'Security', url: '/security', icon: Shield },

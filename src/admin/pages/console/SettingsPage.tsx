@@ -5,8 +5,8 @@ import { SubPageTabs } from './SubPageTabs';
 
 const SETTINGS_SUB_TABS = [
   { hash: 'general', label: 'General' },
-  { hash: 'storage', label: 'Storage' },
   { hash: 'smtp', label: 'SMTP' },
+  { hash: 'storage', label: 'Storage' },
 ];
 
 export function SettingsPage() {
@@ -14,8 +14,8 @@ export function SettingsPage() {
     <div className="max-w-4xl">
       <SubPageTabs subTabs={SETTINGS_SUB_TABS} defaultHash="general">
         <Settings />
-        <Storage />
         <SMTP />
+        <Storage />
       </SubPageTabs>
     </div>
   );

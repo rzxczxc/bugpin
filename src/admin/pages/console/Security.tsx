@@ -79,7 +79,6 @@ export function Security() {
     <Card className="max-w-4xl">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5" />
           <CardTitle>Security Settings</CardTitle>
         </div>
         <CardDescription>Configure rate limiting and session settings</CardDescription>
