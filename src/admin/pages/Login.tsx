@@ -59,11 +59,7 @@ export function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2">
-            <img
-              src="/branding/light/logo-light.svg"
-              alt="BugPin"
-              className="h-10 dark:hidden"
-            />
+            <img src="/branding/light/logo-light.svg" alt="BugPin" className="h-10 dark:hidden" />
             <img
               src="/branding/dark/logo-dark.svg"
               alt="BugPin"
@@ -90,7 +86,7 @@ export function Login() {
                 {...register('email')}
                 aria-invalid={!!errors.email}
               />
-              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+              {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -104,7 +100,7 @@ export function Login() {
                 aria-invalid={!!errors.password}
               />
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+                <p className="text-xs text-destructive">{errors.password.message}</p>
               )}
             </div>
 

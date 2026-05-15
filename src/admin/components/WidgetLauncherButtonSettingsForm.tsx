@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -6,11 +6,26 @@ import { Switch } from './ui/switch';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { ThemeColorPicker } from './ThemeColorPicker';
+import { LocalizedTextEditor } from './i18n/LocalizedTextEditor';
 import { Bug, MessageSquare, AlertCircle } from 'lucide-react';
+import { SUPPORTED_LOCALES } from '@shared/types';
 import type {
   GlobalWidgetLauncherButtonSettings,
+  LocaleCode,
+  LocalizedString,
   WidgetLauncherButtonSettings,
 } from '@shared/types';
+
+const TOOLTIP_BUILTIN_PREVIEW = {
+  en: 'Found a bug?',
+  de: 'Bug gefunden?',
+  fr: 'Vous avez trouvé un bug ?',
+  nl: 'Bug gevonden?',
+  es: '¿Has encontrado un error?',
+  it: 'Hai trovato un bug?',
+  ja: 'バグを見つけましたか？',
+  zh: '发现 bug 了？',
+} as const;
 
 // Available icons for the button
 const AVAILABLE_ICONS = [
@@ -18,6 +33,49 @@ const AVAILABLE_ICONS = [
   { value: 'message-square', label: 'Message', icon: MessageSquare },
   { value: 'alert-circle', label: 'Alert', icon: AlertCircle },
 ] as const;
+
+function resolveForPreview(
+  project: LocalizedString | null | undefined,
+  global: LocalizedString | null,
+  builtin: Partial<Record<LocaleCode, string>> | null,
+  locale: LocaleCode = 'en'
+): string | null {
+  if (project === null) return null;
+  if (project) {
+    if (project[locale]) return project[locale] ?? null;
+    if (project.en) return project.en;
+  }
+  if (global) {
+    if (global[locale]) return global[locale] ?? null;
+    if (global.en) return global.en;
+  }
+  if (builtin) {
+    return builtin[locale] ?? builtin.en ?? null;
+  }
+  return null;
+}
+
+function buildPerLocalePreview(
+  global: LocalizedString | null,
+  builtin: Partial<Record<LocaleCode, string>> | null
+): Partial<Record<LocaleCode, string>> {
+  const out: Partial<Record<LocaleCode, string>> = {};
+  for (const code of SUPPORTED_LOCALES) {
+    const fromGlobal = global?.[code] ?? global?.en ?? '';
+    const fromBuiltin = builtin?.[code] ?? builtin?.en ?? '';
+    const value = fromGlobal || fromBuiltin;
+    if (value) out[code] = value;
+  }
+  return out;
+}
+
+interface LauncherPreviewProps extends Omit<
+  GlobalWidgetLauncherButtonSettings,
+  'buttonText' | 'tooltipText'
+> {
+  buttonText: string | null;
+  tooltipText: string | null;
+}
 
 function LauncherPreview({
   buttonText,
@@ -37,7 +95,7 @@ function LauncherPreview({
   enableHoverScaleEffect,
   tooltipEnabled,
   tooltipText,
-}: GlobalWidgetLauncherButtonSettings) {
+}: LauncherPreviewProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   // For preview, we'll use light mode by default (you can add theme detection if needed)
@@ -135,6 +193,8 @@ interface ButtonSettingsFormProps {
   useCustomSettings?: boolean;
   onCustomToggle?: (enabled: boolean) => void;
   useTabs?: boolean;
+  buttonTextError?: string;
+  tooltipTextError?: string;
 }
 
 export function WidgetLauncherButtonSettingsForm({
@@ -146,13 +206,29 @@ export function WidgetLauncherButtonSettingsForm({
   useCustomSettings = true,
   onCustomToggle,
   useTabs = false,
+  buttonTextError,
+  tooltipTextError,
 }: ButtonSettingsFormProps) {
+  const [buttonTextPreviewLocale, setButtonTextPreviewLocale] = useState<LocaleCode>('en');
+  const [tooltipPreviewLocale, setTooltipPreviewLocale] = useState<LocaleCode>('en');
+  const handleButtonTextLocaleChange = useCallback((locale: LocaleCode) => {
+    setButtonTextPreviewLocale(locale);
+  }, []);
+  const handleTooltipLocaleChange = useCallback((locale: LocaleCode) => {
+    setTooltipPreviewLocale(locale);
+  }, []);
+
   const effectivePosition =
     value.position ?? globalSettings?.widgetLauncherButton.position ?? 'bottom-right';
-  const effectiveButtonText =
-    value.buttonText !== undefined
-      ? value.buttonText
-      : (globalSettings?.widgetLauncherButton.buttonText ?? null);
+  const projectButtonText: LocalizedString | null | undefined = value.buttonText;
+  const globalButtonText: LocalizedString | null =
+    globalSettings?.widgetLauncherButton.buttonText ?? null;
+  const previewButtonText = resolveForPreview(
+    projectButtonText,
+    globalButtonText,
+    null,
+    buttonTextPreviewLocale
+  );
   const effectiveButtonShape =
     value.buttonShape ?? globalSettings?.widgetLauncherButton.buttonShape ?? 'rectangle';
   const effectiveButtonIcon =
@@ -170,10 +246,15 @@ export function WidgetLauncherButtonSettingsForm({
     true;
   const effectiveTooltipEnabled =
     value.tooltipEnabled ?? globalSettings?.widgetLauncherButton.tooltipEnabled ?? false;
-  const effectiveTooltipText =
-    value.tooltipText !== undefined
-      ? value.tooltipText
-      : (globalSettings?.widgetLauncherButton.tooltipText ?? null);
+  const projectTooltipText: LocalizedString | null | undefined = value.tooltipText;
+  const globalTooltipText: LocalizedString | null =
+    globalSettings?.widgetLauncherButton.tooltipText ?? null;
+  const previewTooltipText = resolveForPreview(
+    projectTooltipText,
+    globalTooltipText,
+    TOOLTIP_BUILTIN_PREVIEW,
+    tooltipPreviewLocale
+  );
 
   // Light mode colors
   const effectiveLightButtonColor =
@@ -259,7 +340,7 @@ export function WidgetLauncherButtonSettingsForm({
         <div className="flex items-center justify-center min-h-[100px] bg-background rounded border">
           <LauncherPreview
             position={effectivePosition}
-            buttonText={effectiveButtonText}
+            buttonText={previewButtonText}
             buttonShape={effectiveButtonShape}
             buttonIcon={effectiveButtonIcon}
             buttonIconSize={effectiveButtonIconSize}
@@ -275,7 +356,7 @@ export function WidgetLauncherButtonSettingsForm({
             darkTextHoverColor={effectiveDarkTextHoverColor}
             enableHoverScaleEffect={effectiveEnableHoverScaleEffect}
             tooltipEnabled={effectiveTooltipEnabled}
-            tooltipText={effectiveTooltipText}
+            tooltipText={previewTooltipText}
           />
         </div>
       </div>
@@ -331,20 +412,25 @@ export function WidgetLauncherButtonSettingsForm({
         </div>
       </div>
 
-      {/* Button Text and Icon */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="widget-button-text">Button Text (Optional)</Label>
-          <Input
-            id="widget-button-text"
-            value={effectiveButtonText || ''}
-            onChange={(e) => onChange({ ...value, buttonText: e.target.value || null })}
-            placeholder="Leave empty for icon-only"
-            disabled={disabled}
-          />
-          <p className="text-xs text-muted-foreground">Leave empty to show only an icon</p>
-        </div>
+      {/* Button Text */}
+      <div className="space-y-2">
+        <LocalizedTextEditor
+          layer={globalSettings ? 'project' : 'global'}
+          value={projectButtonText}
+          onChange={(next) => onChange({ ...value, buttonText: next })}
+          label="Button Text"
+          helpText="Leave empty to show only an icon. Toggle the switch to add a text."
+          builtInPreview={
+            globalSettings ? buildPerLocalePreview(globalButtonText, null) : undefined
+          }
+          disabled={disabled}
+          onActiveLocaleChange={handleButtonTextLocaleChange}
+          error={buttonTextError}
+        />
+      </div>
 
+      {/* Button Icon, Icon Size, Icon Stroke Width */}
+      <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="widget-button-icon">Button Icon (Optional)</Label>
           <Select
@@ -372,10 +458,7 @@ export function WidgetLauncherButtonSettingsForm({
           </Select>
           <p className="text-xs text-muted-foreground">Choose an icon to display on the button</p>
         </div>
-      </div>
 
-      {/* Icon Size and Stroke Width */}
-      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="widget-icon-size">Icon Size (px)</Label>
           <Input
@@ -488,15 +571,22 @@ export function WidgetLauncherButtonSettingsForm({
 
         {effectiveTooltipEnabled && (
           <div className="space-y-2">
-            <Label htmlFor="tooltip-text">Tooltip Text</Label>
-            <Input
-              id="tooltip-text"
-              value={effectiveTooltipText || ''}
-              onChange={(e) => onChange({ ...value, tooltipText: e.target.value || null })}
-              placeholder="Report a bug"
+            <LocalizedTextEditor
+              layer={globalSettings ? 'project' : 'global'}
+              value={projectTooltipText}
+              onChange={(next) => onChange({ ...value, tooltipText: next })}
+              label="Tooltip Text"
+              helpText="Text shown in the tooltip on hover. Toggle the switch to override the tooltip text."
+              builtInPreview={
+                globalSettings
+                  ? buildPerLocalePreview(globalTooltipText, TOOLTIP_BUILTIN_PREVIEW)
+                  : TOOLTIP_BUILTIN_PREVIEW
+              }
               disabled={disabled}
+              onActiveLocaleChange={handleTooltipLocaleChange}
+              englishRequired={false}
+              error={tooltipTextError}
             />
-            <p className="text-xs text-muted-foreground">Text shown in the tooltip on hover</p>
           </div>
         )}
       </div>

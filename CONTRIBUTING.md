@@ -179,7 +179,7 @@ rm -rf dist node_modules src/*/node_modules
 ### Architecture Overview
 
 - **Server**: Bun runtime + Hono framework + SQLite
-- **Admin Console**: React 18 + Vite + TanStack Query + Tailwind CSS
+- **Admin Console**: React 19 + Vite + TanStack Query + Tailwind CSS
 - **Widget**: Preact + Fabric.js (for annotations) + IndexedDB (offline support)
 
 ## Pull Request Guidelines

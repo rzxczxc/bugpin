@@ -62,7 +62,7 @@ export const brandingApi = {
   },
 
   /**
-   * Update admin portal button colors
+   * Update Admin Console button colors
    */
   updateAdminThemeColors: async (colors: Partial<ThemeColors>): Promise<void> => {
     await api.put('/branding/admin-theme-colors', colors);

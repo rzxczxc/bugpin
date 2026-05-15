@@ -33,7 +33,3 @@ coverage
 # Generated/minified
 *.min.js
 *.min.css
-
-# Documentation build
-docs/
-docs-dev/

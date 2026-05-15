@@ -24,7 +24,7 @@ import {
 } from '../ui/dialog';
 import { Upload, Trash2, Camera } from 'lucide-react';
 import { Spinner } from '../ui/spinner';
-import { getCroppedImg } from '../../pages/globalsettings/imageUtils';
+import { getCroppedImg } from '../../lib/imageUtils';
 
 interface ProfileDialogProps {
   open: boolean;
@@ -286,7 +286,7 @@ function ProfileSection({ user }: { user: User | null }) {
               {user?.avatarUrl && user.avatarUrl.trim() !== '' && (
                 <Button
                   type="button"
-                  variant="destructive"
+                  variant="outline-destructive"
                   className="w-full"
                   onClick={() => deleteMutation.mutate()}
                   disabled={deleteMutation.isPending || uploading}
@@ -474,7 +474,7 @@ function UpdateProfileSection({ user }: { user: User | null }) {
               {...register('name')}
               aria-invalid={!!errors.name}
             />
-            {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+            {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -487,7 +487,7 @@ function UpdateProfileSection({ user }: { user: User | null }) {
               {...register('email')}
               aria-invalid={!!errors.email}
             />
-            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+            {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             <p className="text-sm text-muted-foreground">Used for login and notifications</p>
           </div>
 
@@ -576,7 +576,7 @@ function ChangePasswordSection() {
               aria-invalid={!!errors.currentPassword}
             />
             {errors.currentPassword && (
-              <p className="text-sm text-destructive">{errors.currentPassword.message}</p>
+              <p className="text-xs text-destructive">{errors.currentPassword.message}</p>
             )}
           </div>
 
@@ -591,7 +591,7 @@ function ChangePasswordSection() {
               aria-invalid={!!errors.newPassword}
             />
             {errors.newPassword && (
-              <p className="text-sm text-destructive">{errors.newPassword.message}</p>
+              <p className="text-xs text-destructive">{errors.newPassword.message}</p>
             )}
           </div>
 
@@ -606,7 +606,7 @@ function ChangePasswordSection() {
               aria-invalid={!!errors.confirmPassword}
             />
             {errors.confirmPassword && (
-              <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+              <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
             )}
           </div>
 
