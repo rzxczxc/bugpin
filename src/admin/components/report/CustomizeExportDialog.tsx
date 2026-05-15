@@ -95,11 +95,10 @@ export function CustomizeExportDialog({
       await navigator.clipboard.writeText(preview);
       toast.success(`Copied ${formatByteSize(previewBytes)} as ${formatLabel(format)}`);
       onExported?.(format, 'copy');
-      onOpenChange(false);
     } catch {
       toast.error('Failed to copy to clipboard');
     }
-  }, [format, onExported, onOpenChange, preview, previewBytes]);
+  }, [format, onExported, preview, previewBytes]);
 
   const handleDownload = useCallback(() => {
     try {
@@ -107,11 +106,10 @@ export function CustomizeExportDialog({
       downloadTextFile(preview, filename, formatMimeType(format));
       toast.success(`Downloaded ${filename}`);
       onExported?.(format, 'download');
-      onOpenChange(false);
     } catch {
       toast.error('Failed to download file');
     }
-  }, [format, onExported, onOpenChange, preview, report.id]);
+  }, [format, onExported, preview, report.id]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
