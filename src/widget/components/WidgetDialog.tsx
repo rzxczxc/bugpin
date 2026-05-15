@@ -1,5 +1,6 @@
 import { FunctionComponent } from 'preact';
 import { useState, useCallback } from 'preact/hooks';
+import { FileText, Image, X } from 'lucide-preact';
 import { ScreenshotManager, CapturedMedia } from './ScreenshotManager.js';
 import { Button, Input, Textarea, Select, Label, Tabs } from './ui';
 import { ScreenCaptureConsentDialog } from './ScreenCaptureConsentDialog.js';
@@ -42,22 +43,8 @@ interface WidgetDialogProps {
 }
 
 const TAB_ICONS = {
-  details: (
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
-        fill="currentColor"
-      />
-    </svg>
-  ),
-  media: (
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
-        fill="currentColor"
-      />
-    </svg>
-  ),
+  details: <FileText />,
+  media: <Image />,
 };
 
 export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
@@ -145,7 +132,7 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
   return (
     <div class="fixed inset-0 z-[2147483646] bg-black/50 flex items-center justify-center p-5 animate-[fadeIn_0.2s_ease-out]">
       <div
-        class="relative w-full max-w-3xl h-[760px] bg-background border border-solid border-border rounded shadow-lg overflow-hidden flex flex-col animate-[slideUp_0.2s_ease-out]"
+        class="relative w-full max-w-3xl min-h-[770px] max-h-[calc(100vh-40px)] bg-background border border-solid border-border rounded shadow-lg overflow-hidden flex flex-col animate-[slideUp_0.2s_ease-out]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="bugpin-title"
@@ -154,12 +141,7 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
         <div class="flex items-center justify-between p-6 border-b border-solid border-border">
           <h1 id="bugpin-title">{t('dialog.title')}</h1>
           <Button variant="ghost" size="icon" onClick={onClose} aria-label={t('aria.close')}>
-            <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-                fill="currentColor"
-              />
-            </svg>
+            <X class="w-5 h-5" />
           </Button>
         </div>
 
@@ -173,10 +155,13 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
             </div>
 
             {/* Body */}
-            <div class="flex-1 overflow-y-auto p-6">
+            <div class="flex-auto min-h-0 flex flex-col">
               {/* Details Tab */}
               {activeTab === 'details' && (
-                <form class="flex flex-col gap-4" onSubmit={handleSubmit}>
+                <form
+                  class="flex-auto min-h-0 overflow-y-auto p-6 flex flex-col gap-4"
+                  onSubmit={handleSubmit}
+                >
                   {/* Title */}
                   <div class="flex flex-col gap-1.5">
                     <Label for="bugpin-title-input" required>
