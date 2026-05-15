@@ -55,6 +55,10 @@ const nl: WidgetCatalog = {
     'Tip: gebruik het annotatiegereedschap om gevoelige gegevens te verbergen voordat u verzendt.',
   'screenshot.capturing': 'Bezig met vastleggen...',
   'screenshot.capture': 'Schermafbeelding maken',
+  'screenshot.quality.label': 'Opnamekwaliteit verlagen',
+  'screenshot.quality.activeIndicator': 'Opnamekwaliteit verlaagd',
+  'screenshot.quality.tooltip':
+    'Vastleggen met 1x pixeldichtheid. Gebruik dit als je schermafbeelding te groot is om te versturen.',
   'screenshot.dropzone.title': 'Sleep bestanden hierheen',
   'screenshot.dropzone.subtitle': 'of klik om te bladeren',
   'screenshot.addMore': 'Meer toevoegen',
@@ -62,6 +66,7 @@ const nl: WidgetCatalog = {
   'screenshot.badge.annotated': 'Geannoteerd',
   'screenshot.badge.video': 'Video',
   'screenshot.action.annotate': 'Annoteren',
+  'screenshot.action.download': 'Downloaden',
   'screenshot.action.remove': 'Verwijderen',
   'screenshot.helperText':
     'Ondersteund: PNG, JPG, GIF, WebP (max {imageSize}MB) - MP4, WebM, MOV, AVI (max {videoSize}MB)',
@@ -71,6 +76,9 @@ const nl: WidgetCatalog = {
   'screenshot.error.unsupportedVideo': 'Niet-ondersteund videoformaat: {type}',
   'screenshot.error.videoTooLarge': 'Video te groot. Maximale grootte is {size}MB.',
   'screenshot.error.unsupportedFile': 'Niet-ondersteund bestandstype: {type}',
+  'screenshot.error.captureTooLarge': 'Schermafbeelding is {size}MB (max. {limit}MB).',
+  'screenshot.error.captureTooLargeHint':
+    'Schakel "Opnamekwaliteit verlagen" in of pas de grootte van het browservenster aan.',
 
   'toast.success.submit': 'Bugrapport succesvol verzonden!',
   'toast.error.submit': 'Verzenden van rapport mislukt',
