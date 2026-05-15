@@ -17,6 +17,32 @@ const LOCALE_LABELS: Record<LocaleCode, string> = {
   zh: '中文 (简体) (CN)',
 };
 
+const PREFERRED_LOCALE_STORAGE_KEY = 'bugpin.admin.localizedTextEditor.preferredLocale';
+
+function isSupportedLocale(value: string): value is LocaleCode {
+  return (SUPPORTED_LOCALES as readonly string[]).includes(value);
+}
+
+function readPreferredLocale(): LocaleCode {
+  if (typeof window === 'undefined') return 'en';
+  try {
+    const stored = window.localStorage.getItem(PREFERRED_LOCALE_STORAGE_KEY);
+    if (stored && isSupportedLocale(stored)) return stored;
+  } catch {
+    // localStorage access can fail (e.g. private mode); fall through to default
+  }
+  return 'en';
+}
+
+function writePreferredLocale(locale: LocaleCode): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(PREFERRED_LOCALE_STORAGE_KEY, locale);
+  } catch {
+    // ignore quota or access errors
+  }
+}
+
 export interface LocalizedTextEditorProps {
   layer: 'project' | 'global';
   value: LocalizedString | null | undefined;
@@ -25,6 +51,9 @@ export interface LocalizedTextEditorProps {
   helpText?: string;
   builtInPreview?: Partial<Record<LocaleCode, string>>;
   disabled?: boolean;
+  onActiveLocaleChange?: (locale: LocaleCode) => void;
+  englishRequired?: boolean;
+  error?: string;
 }
 
 function isCustom(value: LocalizedString | null | undefined): boolean {
@@ -39,15 +68,23 @@ export function LocalizedTextEditor({
   helpText,
   builtInPreview,
   disabled = false,
+  onActiveLocaleChange,
+  englishRequired = true,
+  error,
 }: LocalizedTextEditorProps) {
   const fieldId = useId();
   const switchId = useId();
   const customMode = isCustom(value);
-  const [activeLocale, setActiveLocale] = useState<LocaleCode>('en');
+  const [activeLocale, setActiveLocaleState] = useState<LocaleCode>(() => readPreferredLocale());
+
+  const setActiveLocale = (locale: LocaleCode) => {
+    setActiveLocaleState(locale);
+    writePreferredLocale(locale);
+  };
 
   useEffect(() => {
-    if (!customMode) setActiveLocale('en');
-  }, [customMode]);
+    onActiveLocaleChange?.(activeLocale);
+  }, [activeLocale, onActiveLocaleChange]);
 
   const customValue: LocalizedString = value && typeof value === 'object' ? value : { en: '' };
 
@@ -109,7 +146,7 @@ export function LocalizedTextEditor({
         />
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-start gap-2">
         <Select
           value={activeLocale}
           onValueChange={(v) => setActiveLocale(v as LocaleCode)}
@@ -121,16 +158,17 @@ export function LocalizedTextEditor({
           <SelectContent>
             {SUPPORTED_LOCALES.map((code) => {
               const hasValue = (customValue[code] ?? '').length > 0;
+              const showRequiredMark = englishRequired && code === 'en';
               return (
                 <SelectItem key={code} value={code}>
                   <span className="flex items-center gap-2">
                     <span>{LOCALE_LABELS[code]}</span>
-                    {code === 'en' ? (
+                    {showRequiredMark ? (
                       <span className="text-red-500" aria-label="required">
                         *
                       </span>
                     ) : null}
-                    {customMode && hasValue && code !== 'en' ? (
+                    {customMode && hasValue && !showRequiredMark ? (
                       <span
                         className="ml-auto h-1.5 w-1.5 rounded-full bg-primary"
                         aria-label="has value"
@@ -142,15 +180,18 @@ export function LocalizedTextEditor({
             })}
           </SelectContent>
         </Select>
-        <Input
-          id={`${fieldId}-${activeLocale}`}
-          value={displayValue}
-          placeholder={placeholder}
-          disabled={disabled || !customMode}
-          onChange={(e) => handleLocaleChange(activeLocale, e.target.value)}
-          aria-required={customMode && isEn ? true : undefined}
-          className="flex-1"
-        />
+        <div className="flex-1 space-y-1">
+          <Input
+            id={`${fieldId}-${activeLocale}`}
+            value={displayValue}
+            placeholder={placeholder}
+            disabled={disabled || !customMode}
+            onChange={(e) => handleLocaleChange(activeLocale, e.target.value)}
+            aria-required={englishRequired && customMode && isEn ? true : undefined}
+            aria-invalid={!!error}
+          />
+          {error ? <p className="text-xs text-destructive">{error}</p> : null}
+        </div>
       </div>
     </div>
   );

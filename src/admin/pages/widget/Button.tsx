@@ -1,5 +1,7 @@
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { toast } from 'sonner';
 import { api } from '../../api/client';
 import {
@@ -19,7 +21,58 @@ import type {
   WidgetLauncherButtonSettings,
 } from '@shared/types';
 
-const DEFAULT_BUTTON_SETTINGS: GlobalWidgetLauncherButtonSettings = {
+const localizedStringWithEnSchema = z.object({
+  en: z.string().trim().min(1, 'English value is required'),
+  de: z.string().optional(),
+  fr: z.string().optional(),
+  nl: z.string().optional(),
+  es: z.string().optional(),
+  it: z.string().optional(),
+  ja: z.string().optional(),
+  zh: z.string().optional(),
+});
+
+const localizedStringSchema = z.object({
+  en: z.string(),
+  de: z.string().optional(),
+  fr: z.string().optional(),
+  nl: z.string().optional(),
+  es: z.string().optional(),
+  it: z.string().optional(),
+  ja: z.string().optional(),
+  zh: z.string().optional(),
+});
+
+const buttonSettingsSchema = z.object({
+  position: z.enum(['bottom-right', 'bottom-left', 'top-right', 'top-left']),
+  buttonText: z.union([z.null(), localizedStringWithEnSchema]),
+  buttonShape: z.enum(['round', 'rectangle']),
+  buttonIcon: z.string().nullable(),
+  buttonIconSize: z.number(),
+  buttonIconStroke: z.number(),
+  theme: z.enum(['auto', 'light', 'dark']),
+  enableHoverScaleEffect: z.boolean(),
+  tooltipEnabled: z.boolean(),
+  tooltipText: z.union([z.null(), localizedStringSchema]),
+  lightButtonColor: z.string(),
+  lightTextColor: z.string(),
+  lightButtonHoverColor: z.string(),
+  lightTextHoverColor: z.string(),
+  darkButtonColor: z.string(),
+  darkTextColor: z.string(),
+  darkButtonHoverColor: z.string(),
+  darkTextHoverColor: z.string(),
+});
+
+type ButtonSettingsFormValues = z.infer<typeof buttonSettingsSchema>;
+
+// Compile-time guard that the schema stays structurally identical to the shared interface.
+const _typeCheck: ButtonSettingsFormValues = {} as GlobalWidgetLauncherButtonSettings;
+const _typeCheckReverse: GlobalWidgetLauncherButtonSettings = {} as ButtonSettingsFormValues;
+void _typeCheck;
+void _typeCheckReverse;
+
+const DEFAULT_BUTTON_SETTINGS: ButtonSettingsFormValues = {
   position: 'bottom-right',
   buttonText: null,
   buttonShape: 'round',
@@ -45,10 +98,6 @@ export function Button() {
 }
 
 function WidgetLauncherButtonSettingsSection() {
-  const queryClient = useQueryClient();
-  // Track local edits separately - null means use settings values
-  const [localEdits, setLocalEdits] = useState<GlobalWidgetLauncherButtonSettings | null>(null);
-
   const { data: settings, isLoading } = useQuery({
     queryKey: ['settings'],
     queryFn: async () => {
@@ -57,65 +106,6 @@ function WidgetLauncherButtonSettingsSection() {
     },
   });
 
-  // Use local edits if user has made changes, otherwise use settings directly
-  const displayData = localEdits ?? settings?.widgetLauncherButton ?? DEFAULT_BUTTON_SETTINGS;
-
-  const handleFormChange = (value: WidgetLauncherButtonSettings) => {
-    const current = localEdits ?? settings?.widgetLauncherButton ?? DEFAULT_BUTTON_SETTINGS;
-    const updated = { ...current };
-    if (value.position !== undefined) updated.position = value.position;
-    if (value.buttonText !== undefined) updated.buttonText = value.buttonText;
-    if (value.buttonShape !== undefined) updated.buttonShape = value.buttonShape;
-    if (value.buttonIcon !== undefined) updated.buttonIcon = value.buttonIcon;
-    if (value.buttonIconSize !== undefined) updated.buttonIconSize = value.buttonIconSize;
-    if (value.buttonIconStroke !== undefined) updated.buttonIconStroke = value.buttonIconStroke;
-    if (value.theme !== undefined) updated.theme = value.theme;
-    if (value.lightButtonColor !== undefined) updated.lightButtonColor = value.lightButtonColor;
-    if (value.lightTextColor !== undefined) updated.lightTextColor = value.lightTextColor;
-    if (value.lightButtonHoverColor !== undefined)
-      updated.lightButtonHoverColor = value.lightButtonHoverColor;
-    if (value.lightTextHoverColor !== undefined)
-      updated.lightTextHoverColor = value.lightTextHoverColor;
-    if (value.darkButtonColor !== undefined) updated.darkButtonColor = value.darkButtonColor;
-    if (value.darkTextColor !== undefined) updated.darkTextColor = value.darkTextColor;
-    if (value.darkButtonHoverColor !== undefined)
-      updated.darkButtonHoverColor = value.darkButtonHoverColor;
-    if (value.darkTextHoverColor !== undefined)
-      updated.darkTextHoverColor = value.darkTextHoverColor;
-    if (value.enableHoverScaleEffect !== undefined)
-      updated.enableHoverScaleEffect = value.enableHoverScaleEffect;
-    if (value.tooltipEnabled !== undefined) updated.tooltipEnabled = value.tooltipEnabled;
-    if (value.tooltipText !== undefined) updated.tooltipText = value.tooltipText;
-    setLocalEdits(updated);
-  };
-
-  const mutation = useMutation({
-    mutationFn: async (data: Partial<AppSettings>) => {
-      const response = await api.put('/settings', data);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settings'] });
-      setLocalEdits(null); // Clear local edits after save
-      toast.success('Widget launcher button settings saved successfully');
-    },
-    onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-      toast.error(err.response?.data?.message || 'Failed to save settings');
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    mutation.mutate({
-      widgetLauncherButton: displayData,
-    });
-  };
-
-  const handleReset = () => {
-    setLocalEdits(DEFAULT_BUTTON_SETTINGS);
-  };
-
-  // Wait for settings to fully load before rendering the form
   if (isLoading || !settings?.widgetLauncherButton) {
     return (
       <Card className="max-w-4xl">
@@ -126,6 +116,63 @@ function WidgetLauncherButtonSettingsSection() {
     );
   }
 
+  return <ButtonSettingsForm initialValues={settings.widgetLauncherButton} />;
+}
+
+function ButtonSettingsForm({ initialValues }: { initialValues: ButtonSettingsFormValues }) {
+  const queryClient = useQueryClient();
+  const {
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<ButtonSettingsFormValues>({
+    resolver: zodResolver(buttonSettingsSchema),
+    defaultValues: initialValues,
+    mode: 'onSubmit',
+  });
+
+  const watched = watch();
+
+  const mutation = useMutation({
+    mutationFn: async (data: ButtonSettingsFormValues) => {
+      const response = await api.put('/settings', { widgetLauncherButton: data });
+      return response.data;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      reset(variables);
+      toast.success('Widget button settings saved successfully');
+    },
+    onError: (err: Error & { response?: { data?: { message?: string } } }) => {
+      toast.error(err.response?.data?.message || 'Failed to save settings');
+    },
+  });
+
+  const handleFormChange = (partial: WidgetLauncherButtonSettings) => {
+    for (const key of Object.keys(partial) as Array<keyof WidgetLauncherButtonSettings>) {
+      const next = partial[key];
+      if (next === undefined) continue;
+      setValue(key as keyof ButtonSettingsFormValues, next as never, {
+        shouldDirty: true,
+        shouldValidate: false,
+      });
+    }
+  };
+
+  const onValid = (data: ButtonSettingsFormValues) => {
+    mutation.mutate(data);
+  };
+
+  const handleReset = () => {
+    reset(DEFAULT_BUTTON_SETTINGS);
+  };
+
+  const buttonTextError =
+    errors.buttonText?.message ??
+    (errors.buttonText as { en?: { message?: string } } | undefined)?.en?.message;
+
   return (
     <Card className="max-w-4xl">
       <CardHeader>
@@ -134,9 +181,13 @@ function WidgetLauncherButtonSettingsSection() {
           Configure the appearance and behavior of the floating widget launcher button.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onValid)} noValidate>
         <CardContent className="space-y-4">
-          <WidgetLauncherButtonSettingsForm value={displayData} onChange={handleFormChange} />
+          <WidgetLauncherButtonSettingsForm
+            value={watched}
+            onChange={handleFormChange}
+            buttonTextError={buttonTextError}
+          />
 
           <div className="flex gap-2 pt-4 border-t">
             <UIButton type="submit" disabled={mutation.isPending}>

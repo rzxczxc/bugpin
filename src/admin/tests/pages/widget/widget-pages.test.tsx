@@ -35,7 +35,11 @@ vi.mock('../../../components/WidgetLauncherButtonSettingsForm', () => ({
     <button
       type="button"
       onClick={() =>
-        onChange({ buttonText: 'Report issue', tooltipEnabled: true, tooltipText: 'Need help?' })
+        onChange({
+          buttonText: { en: 'Report issue' },
+          tooltipEnabled: true,
+          tooltipText: { en: 'Need help?' },
+        })
       }
     >
       Change Widget Button
@@ -113,9 +117,9 @@ describe('Widget settings pages', () => {
         '/settings',
         expect.objectContaining({
           widgetLauncherButton: expect.objectContaining({
-            buttonText: 'Report issue',
+            buttonText: expect.objectContaining({ en: 'Report issue' }),
             tooltipEnabled: true,
-            tooltipText: 'Need help?',
+            tooltipText: expect.objectContaining({ en: 'Need help?' }),
           }),
         })
       );

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -37,16 +37,22 @@ const AVAILABLE_ICONS = [
 function resolveForPreview(
   project: LocalizedString | null | undefined,
   global: LocalizedString | null,
-  builtin: string | null
+  builtin: Partial<Record<LocaleCode, string>> | null,
+  locale: LocaleCode = 'en'
 ): string | null {
   if (project === null) return null;
   if (project) {
+    if (project[locale]) return project[locale] ?? null;
     if (project.en) return project.en;
   }
   if (global) {
+    if (global[locale]) return global[locale] ?? null;
     if (global.en) return global.en;
   }
-  return builtin;
+  if (builtin) {
+    return builtin[locale] ?? builtin.en ?? null;
+  }
+  return null;
 }
 
 function buildPerLocalePreview(
@@ -187,6 +193,8 @@ interface ButtonSettingsFormProps {
   useCustomSettings?: boolean;
   onCustomToggle?: (enabled: boolean) => void;
   useTabs?: boolean;
+  buttonTextError?: string;
+  tooltipTextError?: string;
 }
 
 export function WidgetLauncherButtonSettingsForm({
@@ -198,13 +206,29 @@ export function WidgetLauncherButtonSettingsForm({
   useCustomSettings = true,
   onCustomToggle,
   useTabs = false,
+  buttonTextError,
+  tooltipTextError,
 }: ButtonSettingsFormProps) {
+  const [buttonTextPreviewLocale, setButtonTextPreviewLocale] = useState<LocaleCode>('en');
+  const [tooltipPreviewLocale, setTooltipPreviewLocale] = useState<LocaleCode>('en');
+  const handleButtonTextLocaleChange = useCallback((locale: LocaleCode) => {
+    setButtonTextPreviewLocale(locale);
+  }, []);
+  const handleTooltipLocaleChange = useCallback((locale: LocaleCode) => {
+    setTooltipPreviewLocale(locale);
+  }, []);
+
   const effectivePosition =
     value.position ?? globalSettings?.widgetLauncherButton.position ?? 'bottom-right';
   const projectButtonText: LocalizedString | null | undefined = value.buttonText;
   const globalButtonText: LocalizedString | null =
     globalSettings?.widgetLauncherButton.buttonText ?? null;
-  const previewButtonText = resolveForPreview(projectButtonText, globalButtonText, null);
+  const previewButtonText = resolveForPreview(
+    projectButtonText,
+    globalButtonText,
+    null,
+    buttonTextPreviewLocale
+  );
   const effectiveButtonShape =
     value.buttonShape ?? globalSettings?.widgetLauncherButton.buttonShape ?? 'rectangle';
   const effectiveButtonIcon =
@@ -228,7 +252,8 @@ export function WidgetLauncherButtonSettingsForm({
   const previewTooltipText = resolveForPreview(
     projectTooltipText,
     globalTooltipText,
-    TOOLTIP_BUILTIN_PREVIEW.en
+    TOOLTIP_BUILTIN_PREVIEW,
+    tooltipPreviewLocale
   );
 
   // Light mode colors
@@ -399,6 +424,8 @@ export function WidgetLauncherButtonSettingsForm({
             globalSettings ? buildPerLocalePreview(globalButtonText, null) : undefined
           }
           disabled={disabled}
+          onActiveLocaleChange={handleButtonTextLocaleChange}
+          error={buttonTextError}
         />
       </div>
 
@@ -556,6 +583,9 @@ export function WidgetLauncherButtonSettingsForm({
                   : TOOLTIP_BUILTIN_PREVIEW
               }
               disabled={disabled}
+              onActiveLocaleChange={handleTooltipLocaleChange}
+              englishRequired={false}
+              error={tooltipTextError}
             />
           </div>
         )}
