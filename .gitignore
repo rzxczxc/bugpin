@@ -38,6 +38,7 @@ Thumbs.db
 
 # AI agent files
 .claude/
+.codegraph/
 CLAUDE.md
 AGENTS.md
 GEMINI.md
