@@ -499,7 +499,7 @@ export function ReportDetail() {
                   </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <CardContent>
+                  <CardContent className="pt-4">
                     <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2">
                       {consoleErrors.map(
                         (
@@ -550,7 +550,7 @@ export function ReportDetail() {
                   </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <CardContent className="space-y-2">
+                  <CardContent className="space-y-2 pt-4">
                     {networkErrors.map(
                       (
                         err: { url: string; method: string; status: number; statusText: string },
@@ -597,7 +597,7 @@ export function ReportDetail() {
                   </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <CardContent>
+                  <CardContent className="pt-4">
                     <div className="space-y-2 max-h-[480px] overflow-y-auto pr-2">
                       {userActivity.map(
                         (
@@ -715,7 +715,7 @@ export function ReportDetail() {
                     </CardHeader>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <CardContent>
+                    <CardContent className="pt-4">
                       <div className="max-h-[400px] overflow-y-auto">
                         <table className="w-full text-sm">
                           <thead className="sticky top-0 bg-background">
