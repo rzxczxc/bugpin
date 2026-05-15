@@ -39,6 +39,7 @@ import {
 import {
   ChevronLeft,
   ChevronDown,
+  Download,
   ExternalLink,
   Send,
   X,
@@ -57,6 +58,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { Spinner } from '../../components/ui/spinner';
 import { formatDate, formatDateTime } from '../../lib/utils';
+import {
+  buildPermalink,
+  defaultExportOptions,
+  toPlain,
+  type ExportSectionToggles,
+} from '../../lib/reportExport';
+import { CopySectionButton } from '../../components/report/CopySectionButton';
+import { ExportDiagnosticsMenu } from '../../components/report/ExportDiagnosticsMenu';
 import type { AppSettings, Project, Report, ReportSource, User } from '@shared/types';
 
 const UNASSIGNED_VALUE = '__unassigned__';
@@ -76,7 +85,7 @@ export function ReportDetail() {
     assignedTo: UNASSIGNED_VALUE,
   });
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [viewingImage, setViewingImage] = useState<{ url: string; filename: string } | null>(null);
   const [composeMessage, setComposeMessage] = useState('');
   const [composeCcSender, setComposeCcSender] = useState(false);
   const [resolveMessage, setResolveMessage] = useState('');
@@ -232,6 +241,22 @@ export function ReportDetail() {
     report.metadata?.viewport?.height
   );
 
+  const sectionPlain = (section: keyof ExportSectionToggles): string => {
+    const base = defaultExportOptions(buildPermalink(report.id));
+    const sections: ExportSectionToggles = {
+      summary: false,
+      environment: false,
+      page: false,
+      console: false,
+      network: false,
+      userActivity: false,
+      storageKeys: false,
+      reporter: false,
+    };
+    sections[section] = true;
+    return toPlain(report, { ...base, sections });
+  };
+
   const messagingEnabled = (() => {
     if (projectData?.settings?.notifyReporter === false) return false;
     const effectiveEmailEnabled =
@@ -318,19 +343,20 @@ export function ReportDetail() {
           </Button>
           <h1 className="text-2xl font-bold">{report.title}</h1>
         </div>
-        {canEdit && (
-          <div className="flex gap-2">
-            {isEditing ? (
-              <>
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? 'Saving...' : 'Save'}
-                </Button>
-              </>
-            ) : (
-              <>
+        <div className="flex gap-2">
+          {canEdit && isEditing ? (
+            <>
+              <Button variant="outline" onClick={() => setIsEditing(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? 'Saving...' : 'Save'}
+              </Button>
+            </>
+          ) : (
+            <>
+              <ExportDiagnosticsMenu report={report} />
+              {canEdit && (
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -344,49 +370,49 @@ export function ReportDetail() {
                 >
                   Edit
                 </Button>
-                {isAdmin && activeIntegrations.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" disabled={forwardMutation.isPending}>
-                        {forwardMutation.isPending ? (
-                          <>
-                            <Spinner size="sm" className="mr-2" />
-                            Forwarding...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="h-4 w-4 mr-2" />
-                            Forward
-                          </>
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {activeIntegrations.map((integration) => (
-                        <DropdownMenuItem
-                          key={integration.id}
-                          onClick={() => handleForward(integration.id, integration.name)}
-                        >
-                          {integration.type === 'github' && 'GitHub: '}
-                          {integration.name}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-                {isAdmin && (
-                  <Button
-                    variant="outline-destructive"
-                    onClick={() => setShowDeleteDialog(true)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    Delete
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
-        )}
+              )}
+              {canEdit && isAdmin && activeIntegrations.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" disabled={forwardMutation.isPending}>
+                      {forwardMutation.isPending ? (
+                        <>
+                          <Spinner size="sm" className="mr-2" />
+                          Forwarding...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4 mr-2" />
+                          Forward
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {activeIntegrations.map((integration) => (
+                      <DropdownMenuItem
+                        key={integration.id}
+                        onClick={() => handleForward(integration.id, integration.name)}
+                      >
+                        {integration.type === 'github' && 'GitHub: '}
+                        {integration.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              {canEdit && isAdmin && (
+                <Button
+                  variant="outline-destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                  disabled={deleteMutation.isPending}
+                >
+                  Delete
+                </Button>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -417,7 +443,12 @@ export function ReportDetail() {
                         ) : (
                           <button
                             type="button"
-                            onClick={() => setViewingImage(fileUrl)}
+                            onClick={() =>
+                              setViewingImage({
+                                url: fileUrl,
+                                filename: file.filename || `screenshot-${file.id}.png`,
+                              })
+                            }
                             className="w-full cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
                           >
                             <img
@@ -431,6 +462,16 @@ export function ReportDetail() {
                             </div>
                           </button>
                         )}
+                        <a
+                          href={fileUrl}
+                          download={file.filename || `screenshot-${file.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute top-2 right-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md bg-black/60 text-white opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity hover:bg-black/80"
+                          title="Download"
+                          aria-label={`Download ${file.filename || 'screenshot'}`}
+                        >
+                          <Download className="w-4 h-4" />
+                        </a>
                       </div>
                     );
                   })}
@@ -453,28 +494,46 @@ export function ReportDetail() {
                 <X className="w-8 h-8" />
               </button>
               <img
-                src={viewingImage}
+                src={viewingImage.url}
                 alt="Full size screenshot"
                 className="max-w-full max-h-full object-contain"
                 onClick={(e) => e.stopPropagation()}
               />
-              <a
-                href={viewingImage}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute bottom-4 right-4 text-white hover:text-gray-300 transition-colors flex items-center gap-2"
+              <div
+                className="absolute bottom-4 right-4 flex items-center gap-4"
                 onClick={(e) => e.stopPropagation()}
               >
-                <ExternalLink className="w-5 h-5" />
-                Open in new tab
-              </a>
+                <a
+                  href={viewingImage.url}
+                  download={viewingImage.filename}
+                  className="text-white hover:text-gray-300 transition-colors flex items-center gap-2"
+                >
+                  <Download className="w-5 h-5" />
+                  Download
+                </a>
+                <a
+                  href={viewingImage.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white hover:text-gray-300 transition-colors flex items-center gap-2"
+                >
+                  <ExternalLink className="w-5 h-5" />
+                  Open in new tab
+                </a>
+              </div>
             </div>
           )}
 
           {/* Description */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex-row items-center justify-between space-y-0">
               <CardTitle>Description</CardTitle>
+              {report.description && (
+                <CopySectionButton
+                  label="description"
+                  getContent={() => report.description ?? ''}
+                />
+              )}
             </CardHeader>
             <CardContent>
               <p className="whitespace-pre-wrap text-muted-foreground">
@@ -487,17 +546,23 @@ export function ReportDetail() {
           {consoleErrors.length > 0 && (
             <Collapsible>
               <Card>
-                <CollapsibleTrigger className="w-full">
-                  <CardHeader className="flex-row items-center justify-between space-y-0 cursor-pointer hover:bg-muted/50 transition-colors">
+                <CardHeader className="flex-row items-center justify-between space-y-0 p-0">
+                  <CollapsibleTrigger className="flex flex-1 items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-tl-xl">
                     <CardTitle>
                       Console Output
                       <span className="ml-2 text-sm font-normal text-muted-foreground">
                         ({consoleErrors.length})
                       </span>
                     </CardTitle>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
-                  </CardHeader>
-                </CollapsibleTrigger>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                  </CollapsibleTrigger>
+                  <div className="pr-3 pl-1">
+                    <CopySectionButton
+                      label="console output"
+                      getContent={() => sectionPlain('console')}
+                    />
+                  </div>
+                </CardHeader>
                 <CollapsibleContent>
                   <CardContent className="pt-4">
                     <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2">
@@ -538,17 +603,23 @@ export function ReportDetail() {
           {networkErrors.length > 0 && (
             <Collapsible>
               <Card>
-                <CollapsibleTrigger className="w-full">
-                  <CardHeader className="flex-row items-center justify-between space-y-0 cursor-pointer hover:bg-muted/50 transition-colors">
+                <CardHeader className="flex-row items-center justify-between space-y-0 p-0">
+                  <CollapsibleTrigger className="flex flex-1 items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-tl-xl">
                     <CardTitle>
                       Network Errors
                       <span className="ml-2 text-sm font-normal text-muted-foreground">
                         ({networkErrors.length})
                       </span>
                     </CardTitle>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
-                  </CardHeader>
-                </CollapsibleTrigger>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                  </CollapsibleTrigger>
+                  <div className="pr-3 pl-1">
+                    <CopySectionButton
+                      label="network errors"
+                      getContent={() => sectionPlain('network')}
+                    />
+                  </div>
+                </CardHeader>
                 <CollapsibleContent>
                   <CardContent className="space-y-2 pt-4">
                     {networkErrors.map(
@@ -585,17 +656,23 @@ export function ReportDetail() {
           {userActivity.length > 0 && (
             <Collapsible>
               <Card>
-                <CollapsibleTrigger className="w-full">
-                  <CardHeader className="flex-row items-center justify-between space-y-0 cursor-pointer hover:bg-muted/50 transition-colors">
+                <CardHeader className="flex-row items-center justify-between space-y-0 p-0">
+                  <CollapsibleTrigger className="flex flex-1 items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-tl-xl">
                     <CardTitle>
                       User Activity Trail
                       <span className="ml-2 text-sm font-normal text-muted-foreground">
                         ({userActivity.length} events)
                       </span>
                     </CardTitle>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
-                  </CardHeader>
-                </CollapsibleTrigger>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                  </CollapsibleTrigger>
+                  <div className="pr-3 pl-1">
+                    <CopySectionButton
+                      label="user activity"
+                      getContent={() => sectionPlain('userActivity')}
+                    />
+                  </div>
+                </CardHeader>
                 <CollapsibleContent>
                   <CardContent className="pt-4">
                     <div className="space-y-2 max-h-[480px] overflow-y-auto pr-2">
@@ -699,8 +776,8 @@ export function ReportDetail() {
               report.metadata.storageKeys.sessionStorage?.length > 0) && (
               <Collapsible>
                 <Card>
-                  <CollapsibleTrigger className="w-full">
-                    <CardHeader className="flex-row items-center justify-between space-y-0 cursor-pointer hover:bg-muted/50 transition-colors">
+                  <CardHeader className="flex-row items-center justify-between space-y-0 p-0">
+                    <CollapsibleTrigger className="flex flex-1 items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-tl-xl">
                       <CardTitle>
                         Storage Keys
                         <span className="ml-2 text-sm font-normal text-muted-foreground">
@@ -711,9 +788,15 @@ export function ReportDetail() {
                           )
                         </span>
                       </CardTitle>
-                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
-                    </CardHeader>
-                  </CollapsibleTrigger>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                    </CollapsibleTrigger>
+                    <div className="pr-3 pl-1">
+                      <CopySectionButton
+                        label="storage keys"
+                        getContent={() => sectionPlain('storageKeys')}
+                      />
+                    </div>
+                  </CardHeader>
                   <CollapsibleContent>
                     <CardContent className="pt-4">
                       <div className="max-h-[400px] overflow-y-auto">
