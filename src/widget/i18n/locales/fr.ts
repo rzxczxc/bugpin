@@ -19,7 +19,7 @@ const fr: WidgetCatalog = {
   'dialog.fields.name.label': 'Nom (facultatif)',
   'dialog.fields.name.placeholder': 'Votre nom',
   'dialog.fields.email.label': 'E-mail (facultatif)',
-  'dialog.fields.email.placeholder': 'ton@email.com',
+  'dialog.fields.email.placeholder': 'you@example.com',
 
   'dialog.priority.highest': 'Très haute',
   'dialog.priority.high': 'Haute',

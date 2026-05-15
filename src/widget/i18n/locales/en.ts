@@ -17,7 +17,7 @@ const en = {
   'dialog.fields.name.label': 'Name (optional)',
   'dialog.fields.name.placeholder': 'Your name',
   'dialog.fields.email.label': 'Email (optional)',
-  'dialog.fields.email.placeholder': 'your@email.com',
+  'dialog.fields.email.placeholder': 'you@example.com',
 
   'dialog.priority.highest': 'Highest',
   'dialog.priority.high': 'High',

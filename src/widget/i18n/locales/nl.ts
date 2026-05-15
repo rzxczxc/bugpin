@@ -19,7 +19,7 @@ const nl: WidgetCatalog = {
   'dialog.fields.name.label': 'Naam (optioneel)',
   'dialog.fields.name.placeholder': 'Uw naam',
   'dialog.fields.email.label': 'E-mail (optioneel)',
-  'dialog.fields.email.placeholder': 'uw@email.com',
+  'dialog.fields.email.placeholder': 'you@example.com',
 
   'dialog.priority.highest': 'Hoogste',
   'dialog.priority.high': 'Hoog',

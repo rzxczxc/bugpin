@@ -19,7 +19,7 @@ const ja: WidgetCatalog = {
   'dialog.fields.name.label': '名前（任意）',
   'dialog.fields.name.placeholder': 'お名前',
   'dialog.fields.email.label': 'メールアドレス（任意）',
-  'dialog.fields.email.placeholder': 'your@email.com',
+  'dialog.fields.email.placeholder': 'you@example.com',
 
   'dialog.priority.highest': '最高',
   'dialog.priority.high': '高',
