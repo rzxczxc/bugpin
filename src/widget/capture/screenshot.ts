@@ -9,6 +9,10 @@ export interface CaptureOptions {
   selector?: string;
   useScreenCaptureAPI?: boolean;
   cacheBust?: boolean;
+  // When set, overrides the device pixel ratio used for capture. Lets callers
+  // trade resolution for a smaller output, e.g. to fit a server size budget.
+  // Still clamped to safe canvas/pixel limits.
+  pixelRatioOverride?: number;
 }
 
 // Guardrails to prevent crashes
@@ -81,7 +85,12 @@ async function waitForImages(element: HTMLElement): Promise<void> {
  * @param height - Height in CSS pixels (will be rounded up)
  * @param mode - Capture mode for context-specific error messages
  */
-function getSafePixelRatio(width: number, height: number, mode: CaptureMethod = 'visible'): number {
+function getSafePixelRatio(
+  width: number,
+  height: number,
+  mode: CaptureMethod = 'visible',
+  override?: number
+): number {
   // Round up to handle float dimensions from getBoundingClientRect
   const w = Math.ceil(width);
   const h = Math.ceil(height);
@@ -113,7 +122,11 @@ function getSafePixelRatio(width: number, height: number, mode: CaptureMethod = 
     );
   }
 
-  let dpr = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
+  const baseDpr =
+    typeof override === 'number' && override > 0
+      ? override
+      : window.devicePixelRatio || 1;
+  let dpr = Math.min(baseDpr, MAX_PIXEL_RATIO);
 
   // Check if output would exceed limits and reduce DPR if needed
   let outputWidth = w * dpr;
@@ -382,7 +395,13 @@ async function captureWithScreenCaptureAPI(): Promise<string> {
  * @returns Base64 data URL of the screenshot
  */
 export async function captureScreenshot(options: CaptureOptions = {}): Promise<string> {
-  const { method = 'visible', selector, useScreenCaptureAPI = false, cacheBust } = options;
+  const {
+    method = 'visible',
+    selector,
+    useScreenCaptureAPI = false,
+    cacheBust,
+    pixelRatioOverride,
+  } = options;
 
   // Use Screen Capture API if enabled, fall back to html-to-image on failure
   if (useScreenCaptureAPI) {
@@ -470,7 +489,12 @@ export async function captureScreenshot(options: CaptureOptions = {}): Promise<s
 
     // For visible mode: capture area that includes the viewport, then crop
     if (method === 'visible') {
-      const dpr = getSafePixelRatio(viewportWidth, viewportHeight, 'visible');
+      const dpr = getSafePixelRatio(
+        viewportWidth,
+        viewportHeight,
+        'visible',
+        pixelRatioOverride
+      );
       const bgColor = getBackgroundColor();
 
       // Calculate the area we need to capture (from origin to bottom of viewport)
@@ -554,7 +578,7 @@ export async function captureScreenshot(options: CaptureOptions = {}): Promise<s
         document.documentElement.offsetHeight
       );
 
-      const dpr = getSafePixelRatio(fullWidth, fullHeight, 'fullpage');
+      const dpr = getSafePixelRatio(fullWidth, fullHeight, 'fullpage', pixelRatioOverride);
       const bgColor = getBackgroundColor();
 
       const toCanvasOptions: Parameters<typeof toCanvas>[1] = {
@@ -573,7 +597,7 @@ export async function captureScreenshot(options: CaptureOptions = {}): Promise<s
 
     // For element mode: capture the specific element
     const rect = element.getBoundingClientRect();
-    const dpr = getSafePixelRatio(rect.width, rect.height, 'element');
+    const dpr = getSafePixelRatio(rect.width, rect.height, 'element', pixelRatioOverride);
     const bgColor = getBackgroundColor();
 
     const toCanvasOptions: Parameters<typeof toCanvas>[1] = {

@@ -26,6 +26,10 @@ interface ScreenshotManagerProps {
   enableAnnotation: boolean;
   maxImageSize?: number;
   maxVideoSize?: number;
+  reduceQuality: boolean;
+  onReduceQualityChange: (value: boolean) => void;
+  oversizedCapture: { sizeMb: number; limitMb: number } | null;
+  onDismissOversizedCapture: () => void;
 }
 
 const DEFAULT_MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -43,6 +47,10 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
   enableAnnotation,
   maxImageSize = DEFAULT_MAX_IMAGE_SIZE,
   maxVideoSize = DEFAULT_MAX_VIDEO_SIZE,
+  reduceQuality,
+  onReduceQualityChange,
+  oversizedCapture,
+  onDismissOversizedCapture,
 }) => {
   useLocale();
   const [isDragging, setIsDragging] = useState(false);
@@ -176,14 +184,50 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
     fileInputRef.current?.click();
   }, []);
 
+  const handleDownload = useCallback((item: CapturedMedia) => {
+    const subtype = item.mimeType.split('/')[1] || (isVideo(item.mimeType) ? 'webm' : 'png');
+    const extension = subtype === 'jpeg' ? 'jpg' : subtype;
+    const stamp = item.timestamp.toISOString().replace(/[:.]/g, '-');
+    const filename = `bugpin-${isVideo(item.mimeType) ? 'recording' : 'screenshot'}-${stamp}.${extension}`;
+    const anchor = document.createElement('a');
+    anchor.href = item.dataUrl;
+    anchor.download = filename;
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  }, []);
+
   const formatTimestamp = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
     <div class="flex flex-col gap-4">
-      {/* Privacy notice */}
-      <p class="text-xs text-muted-foreground">{t('screenshot.privacyTip')}</p>
+      {/* Persistent capture-quality toggle. Always visible so the user can
+          opt in or out at any time without waiting for the size-warning
+          banner to surface it. Color matches the project's brand color via
+          the --button-color CSS variable (set in App.tsx from the admin
+          console's dialog color settings). */}
+      <div
+        class="flex items-center justify-between gap-3 text-xs text-muted-foreground select-none"
+        title={t('screenshot.quality.tooltip')}
+      >
+        <span>{t('screenshot.quality.label')}</span>
+        <label class="cursor-pointer">
+          <input
+            type="checkbox"
+            class="peer sr-only"
+            checked={reduceQuality}
+            onChange={(e) => onReduceQualityChange((e.target as HTMLInputElement).checked)}
+            aria-label={t('screenshot.quality.label')}
+          />
+          <span
+            aria-hidden="true"
+            class="relative flex-shrink-0 inline-block w-8 h-4 rounded-full bg-muted-foreground/30 transition-colors peer-checked:bg-[var(--button-color)] after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-3 after:h-3 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:after:translate-x-4"
+          />
+        </label>
+      </div>
 
       {/* Action button */}
       <div class="flex gap-2">
@@ -206,6 +250,51 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
         />
       </div>
 
+      {/* Privacy notice */}
+      <p class="text-xs text-muted-foreground">{t('screenshot.privacyTip')}</p>
+
+      {/* Oversize warning banner with inline quality toggle.
+          Only shown after a too-large capture is rejected. */}
+      {oversizedCapture && (
+        <div
+          role="alert"
+          class="flex items-start gap-2 px-3 py-2.5 bg-amber-50 dark:bg-amber-950/40 border border-solid border-amber-200 dark:border-amber-800/60 rounded text-amber-800 dark:text-amber-200 text-xs"
+        >
+          <svg
+            class="w-4 h-4 flex-shrink-0 mt-px"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 5.99L19.53 19H4.47L12 5.99M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v5h2v-5z"
+              fill="currentColor"
+            />
+          </svg>
+          <div class="flex-1 leading-relaxed">
+            <p class="font-medium">
+              {t('screenshot.error.captureTooLarge', {
+                size: oversizedCapture.sizeMb,
+                limit: oversizedCapture.limitMb,
+              })}
+            </p>
+            <p class="mt-1 opacity-90">{t('screenshot.error.captureTooLargeHint')}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onDismissOversizedCapture}
+            class="flex-shrink-0 -mt-0.5 -mr-1 p-1 rounded hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
+            aria-label={t('aria.close')}
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* Error message */}
       {uploadError && (
         <div class="flex items-center gap-2 px-3 py-2.5 bg-red-50 dark:bg-red-950/50 border border-solid border-red-200 dark:border-red-800 rounded text-red-600 dark:text-red-400 text-sm">
@@ -227,6 +316,7 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
       <div
         class={cn(
           'min-h-40 border-2 border-dashed border-border rounded bg-muted transition-colors',
+          media.length === 0 && 'hover:border-primary hover:bg-primary/5',
           isDragging && 'border-primary bg-primary/5',
           media.length > 0 && 'border-solid bg-background min-h-0'
         )}
@@ -296,7 +386,7 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      class="w-7 h-7 bg-background hover:bg-muted text-foreground"
+                      class="w-7 h-7 bg-background hover:bg-foreground/10 text-foreground"
                       onClick={() => onAnnotate(item.id)}
                       title={t('screenshot.action.annotate')}
                     >
@@ -308,6 +398,20 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
                       </svg>
                     </Button>
                   )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    class="w-7 h-7 bg-background hover:bg-foreground/10 text-foreground"
+                    onClick={() => handleDownload(item)}
+                    title={t('screenshot.action.download')}
+                  >
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"

@@ -145,6 +145,10 @@ describe('widget components', () => {
         onAnnotate={() => undefined}
         isCapturing={false}
         enableAnnotation={true}
+        reduceQuality={false}
+        onReduceQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
       />
     );
     expect(html).toContain('Drag and drop files here');
@@ -160,6 +164,10 @@ describe('widget components', () => {
         onAnnotate={() => undefined}
         isCapturing={false}
         enableAnnotation={true}
+        reduceQuality={false}
+        onReduceQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
       />
     );
     expect(html).toContain('Add more');
@@ -180,6 +188,10 @@ describe('widget components', () => {
         onAnnotate={() => undefined}
         isCapturing={false}
         enableAnnotation={false}
+        reduceQuality={false}
+        onReduceQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
       />
     );
     expect(html).toContain('Video');
@@ -212,6 +224,10 @@ describe('widget components', () => {
         showScreenCaptureConsent={false}
         onConsentConfirm={() => undefined}
         onConsentCancel={() => undefined}
+        reduceScreenshotQuality={false}
+        onReduceScreenshotQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
       />
     );
     expect(html).toContain('Report a Bug');
@@ -244,6 +260,10 @@ describe('widget components', () => {
         showScreenCaptureConsent={false}
         onConsentConfirm={() => undefined}
         onConsentCancel={() => undefined}
+        reduceScreenshotQuality={false}
+        onReduceScreenshotQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
       />
     );
     expect(html).toContain('Screenshots (1)');
@@ -276,6 +296,10 @@ describe('widget components', () => {
         showScreenCaptureConsent={false}
         onConsentConfirm={() => undefined}
         onConsentCancel={() => undefined}
+        reduceScreenshotQuality={false}
+        onReduceScreenshotQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
       />
     );
     expect(html).toContain('animate-[spin_0.8s_linear_infinite]');
@@ -291,6 +315,10 @@ describe('widget components', () => {
         onAnnotate={() => undefined}
         isCapturing={true}
         enableAnnotation={true}
+        reduceQuality={false}
+        onReduceQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
       />
     );
     expect(html).toContain('Capturing...');

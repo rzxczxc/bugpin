@@ -35,6 +35,10 @@ interface WidgetDialogProps {
   onConsentCancel: () => void;
   maxImageSize?: number;
   maxVideoSize?: number;
+  reduceScreenshotQuality: boolean;
+  onReduceScreenshotQualityChange: (value: boolean) => void;
+  oversizedCapture: { sizeMb: number; limitMb: number } | null;
+  onDismissOversizedCapture: () => void;
 }
 
 const TAB_ICONS = {
@@ -76,6 +80,10 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
   onConsentCancel,
   maxImageSize,
   maxVideoSize,
+  reduceScreenshotQuality,
+  onReduceScreenshotQualityChange,
+  oversizedCapture,
+  onDismissOversizedCapture,
 }) => {
   useLocale();
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -137,7 +145,7 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
   return (
     <div class="fixed inset-0 z-[2147483646] bg-black/50 flex items-center justify-center p-5 animate-[fadeIn_0.2s_ease-out]">
       <div
-        class="relative w-full max-w-3xl max-h-[90vh] bg-background border border-solid border-border rounded shadow-lg overflow-hidden flex flex-col animate-[slideUp_0.2s_ease-out]"
+        class="relative w-full max-w-3xl h-[760px] bg-background border border-solid border-border rounded shadow-lg overflow-hidden flex flex-col animate-[slideUp_0.2s_ease-out]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="bugpin-title"
@@ -273,6 +281,10 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
                   enableAnnotation={enableAnnotation}
                   maxImageSize={maxImageSize}
                   maxVideoSize={maxVideoSize}
+                  reduceQuality={reduceScreenshotQuality}
+                  onReduceQualityChange={onReduceScreenshotQualityChange}
+                  oversizedCapture={oversizedCapture}
+                  onDismissOversizedCapture={onDismissOversizedCapture}
                 />
               )}
             </div>

@@ -195,7 +195,11 @@ widget.post('/submit', dynamicRateLimiter({ keyGenerator: apiKeyGenerator }), as
 
   // Filter and prepare media files data
   const settings = await settingsCacheService.getAll();
-  const maxFileSizeBytes = (settings.screenshot.maxImageUploadSizeMb ?? 10) * 1024 * 1024;
+  const imageLimitMb = Math.max(
+    settings.screenshot.maxScreenshotSize ?? 5,
+    settings.screenshot.maxImageUploadSizeMb ?? 10
+  );
+  const maxFileSizeBytes = imageLimitMb * 1024 * 1024;
   const maxVideoSizeBytes = (settings.screenshot.maxVideoUploadSizeMb ?? 50) * 1024 * 1024;
   const allowedTypes: readonly string[] = ALLOWED_MEDIA_MIME_TYPES;
 
@@ -207,18 +211,42 @@ widget.post('/submit', dynamicRateLimiter({ keyGenerator: apiKeyGenerator }), as
         filename: file.name,
         mimeType: file.type,
       });
-      continue;
+      return c.json(
+        {
+          success: false,
+          error: 'UNSUPPORTED_MEDIA_TYPE',
+          message: `Unsupported media type "${file.type}" for "${file.name}".`,
+          details: { filename: file.name, mimeType: file.type },
+        },
+        415
+      );
     }
 
     // Early size check before buffering
-    const sizeLimit = file.type.startsWith('video/') ? maxVideoSizeBytes : maxFileSizeBytes;
+    const isVideo = file.type.startsWith('video/');
+    const sizeLimit = isVideo ? maxVideoSizeBytes : maxFileSizeBytes;
     if (file.size > sizeLimit) {
+      const limitMb = Math.round(sizeLimit / (1024 * 1024));
+      const sizeMb = Math.round((file.size / (1024 * 1024)) * 10) / 10;
       logger.warn('Media file rejected: too large', {
         filename: file.name,
         size: file.size,
         limit: sizeLimit,
       });
-      continue;
+      return c.json(
+        {
+          success: false,
+          error: 'FILE_TOO_LARGE',
+          message: `${isVideo ? 'Video' : 'Image'} "${file.name}" is ${sizeMb}MB; maximum is ${limitMb}MB.`,
+          details: {
+            filename: file.name,
+            size: file.size,
+            limit: sizeLimit,
+            kind: isVideo ? 'video' : 'image',
+          },
+        },
+        413
+      );
     }
 
     try {
@@ -230,6 +258,15 @@ widget.post('/submit', dynamicRateLimiter({ keyGenerator: apiKeyGenerator }), as
       });
     } catch (error) {
       logger.error('Failed to process media file', error, { filename: file.name });
+      return c.json(
+        {
+          success: false,
+          error: 'FILE_READ_ERROR',
+          message: `Failed to read uploaded file "${file.name}"`,
+          details: { filename: file.name },
+        },
+        400
+      );
     }
   }
 
@@ -317,6 +354,8 @@ widget.get('/config/:apiKey', async (c) => {
   // because null is a valid explicit value (e.g., "No Icon") and ?? would treat it as unset.
   const useScreenCaptureAPI =
     projScreenshot?.useScreenCaptureAPI ?? globalScreenshot.useScreenCaptureAPI;
+  const maxScreenshotSizeMb =
+    projScreenshot?.maxScreenshotSize ?? globalScreenshot.maxScreenshotSize;
   const maxImageUploadSizeMb =
     projScreenshot?.maxImageUploadSizeMb ?? globalScreenshot.maxImageUploadSizeMb;
   const maxVideoUploadSizeMb =
@@ -439,6 +478,7 @@ widget.get('/config/:apiKey', async (c) => {
       tooltipText: tooltipTextBundle,
       captureMethod: 'visible', // Default capture method
       useScreenCaptureAPI,
+      maxScreenshotSizeMb,
       maxImageUploadSizeMb,
       maxVideoUploadSizeMb,
       language: {
