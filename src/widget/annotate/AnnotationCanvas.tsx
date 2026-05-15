@@ -1000,8 +1000,8 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
   }) => (
     <button
       class={cn(
-        'flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-gray-600 cursor-pointer transition-colors',
-        'hover:bg-gray-100 hover:text-gray-800',
+        'flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-muted-foreground cursor-pointer transition-colors',
+        'hover:bg-foreground/10 hover:text-foreground',
         '[&_svg]:w-4.5 [&_svg]:h-4.5',
         activeTool === tool && 'bg-primary/10 text-primary'
       )}
@@ -1071,14 +1071,20 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
           {COLORS.map((color) => (
             <button
               key={color}
-              class={cn(
-                'w-6 h-6 rounded-full border-2 border-solid cursor-pointer transition-transform hover:scale-110',
-                activeColor === color ? 'border-gray-800 scale-110' : 'border-transparent'
-              )}
-              style={{ backgroundColor: color }}
+              class="group flex w-6 h-6 items-center justify-center border-none bg-transparent p-0 cursor-pointer"
               onClick={() => setActiveColor(color)}
               title={color}
-            />
+            >
+              <span
+                class={cn(
+                  'block rounded-full transition-all',
+                  activeColor === color
+                    ? 'w-5 h-5 ring-2 ring-foreground ring-offset-1 ring-offset-muted'
+                    : 'w-6 h-6 group-hover:scale-110'
+                )}
+                style={{ backgroundColor: color }}
+              />
+            </button>
           ))}
         </div>
 
@@ -1091,13 +1097,13 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
               key={width}
               class={cn(
                 'flex items-center justify-center w-8 h-8 border-none rounded bg-transparent cursor-pointer transition-colors',
-                'hover:bg-gray-100',
+                'hover:bg-foreground/10',
                 strokeWidth === width && 'bg-primary/10'
               )}
               onClick={() => setStrokeWidth(width)}
               title={t('annotation.toolbar.strokeWidth', { width })}
             >
-              <span class="w-5 bg-gray-800 rounded-full" style={{ height: `${width}px` }} />
+              <span class="w-5 bg-foreground rounded-full" style={{ height: `${width}px` }} />
             </button>
           ))}
         </div>
@@ -1107,7 +1113,7 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
         {/* Undo/Redo */}
         <div class="flex items-center gap-1">
           <button
-            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-gray-600 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
+            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-muted-foreground cursor-pointer transition-colors hover:bg-foreground/10 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
             onClick={undo}
             disabled={!canUndo}
             title={t('annotation.toolbar.undo')}
@@ -1120,7 +1126,7 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
             </svg>
           </button>
           <button
-            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-gray-600 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
+            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-muted-foreground cursor-pointer transition-colors hover:bg-foreground/10 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
             onClick={redo}
             disabled={!canRedo}
             title={t('annotation.toolbar.redo')}
@@ -1133,7 +1139,7 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
             </svg>
           </button>
           <button
-            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-gray-600 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
+            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-muted-foreground cursor-pointer transition-colors hover:bg-foreground/10 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
             onClick={deleteSelected}
             title={t('annotation.toolbar.delete')}
           >
@@ -1151,7 +1157,7 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
         {/* Zoom Controls */}
         <div class="flex items-center gap-1">
           <button
-            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-gray-600 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
+            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-muted-foreground cursor-pointer transition-colors hover:bg-foreground/10 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
             onClick={handleZoomOut}
             disabled={zoomLevel <= 0.5}
             title={t('annotation.toolbar.zoomOut')}
@@ -1164,7 +1170,7 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
             </svg>
           </button>
           <button
-            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-gray-600 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
+            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-muted-foreground cursor-pointer transition-colors hover:bg-foreground/10 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
             onClick={handleZoomReset}
             title={t('annotation.toolbar.zoomReset', { percent: Math.round(zoomLevel * 100) })}
           >
@@ -1176,7 +1182,7 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
             </svg>
           </button>
           <button
-            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-gray-600 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
+            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-muted-foreground cursor-pointer transition-colors hover:bg-foreground/10 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
             onClick={handleZoomIn}
             disabled={zoomLevel >= 3}
             title={t('annotation.toolbar.zoomIn')}
@@ -1193,7 +1199,7 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
 
       {/* Canvas */}
       <div
-        class="min-h-[600px] min-w-[700px] max-h-[70vh] overflow-auto flex items-center justify-center p-4 bg-gray-800"
+        class="min-h-[600px] min-w-[700px] max-h-[70vh] overflow-auto flex items-center justify-center p-4 bg-muted"
         ref={canvasWrapperRef}
       >
         <canvas ref={canvasRef} />
