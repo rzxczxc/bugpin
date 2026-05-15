@@ -363,7 +363,7 @@ export function Projects() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              variant="destructive"
+              variant="outline-destructive"
               disabled={deleteConfirmation !== 'DELETE'}
               onClick={() => deleteProject && deleteMutation.mutate(deleteProject.id)}
             >

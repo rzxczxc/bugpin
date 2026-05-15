@@ -286,7 +286,7 @@ function ProfileSection({ user }: { user: User | null }) {
               {user?.avatarUrl && user.avatarUrl.trim() !== '' && (
                 <Button
                   type="button"
-                  variant="destructive"
+                  variant="outline-destructive"
                   className="w-full"
                   onClick={() => deleteMutation.mutate()}
                   disabled={deleteMutation.isPending || uploading}

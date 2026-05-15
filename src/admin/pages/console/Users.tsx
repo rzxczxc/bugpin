@@ -403,7 +403,7 @@ export function Users() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              variant="destructive"
+              variant="outline-destructive"
               onClick={() => deleteUser && deleteMutation.mutate(deleteUser.id)}
             >
               Delete

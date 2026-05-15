@@ -152,7 +152,7 @@ export function ProjectIntegrationsDialog({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} variant="destructive">
+            <AlertDialogAction onClick={confirmDelete} variant="outline-destructive">
               {deleteMutation.isPending ? (
                 <>
                   <Spinner size="sm" className="mr-2" />

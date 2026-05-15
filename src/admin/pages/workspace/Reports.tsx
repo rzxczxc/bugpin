@@ -800,7 +800,7 @@ export function Reports() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={bulkDeleteMutation.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              variant="destructive"
+              variant="outline-destructive"
               onClick={handleBulkDelete}
               disabled={bulkDeleteMutation.isPending}
             >

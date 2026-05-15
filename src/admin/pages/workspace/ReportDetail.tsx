@@ -1205,7 +1205,7 @@ export function ReportDetail() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => deleteMutation.mutate()}>
+            <AlertDialogAction variant="outline-destructive" onClick={() => deleteMutation.mutate()}>
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

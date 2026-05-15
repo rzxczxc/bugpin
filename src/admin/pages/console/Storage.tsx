@@ -558,7 +558,7 @@ function MigrationSection() {
         )}
 
         {isRunning && (
-          <Button onClick={cancelMigration} variant="destructive" className="w-full">
+          <Button onClick={cancelMigration} variant="outline-destructive" className="w-full">
             Cancel Migration
           </Button>
         )}

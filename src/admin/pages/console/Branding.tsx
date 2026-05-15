@@ -446,7 +446,7 @@ function IconSection() {
               {dialogOpen && getIconUrl(dialogOpen) && (
                 <Button
                   type="button"
-                  variant="destructive"
+                  variant="outline-destructive"
                   className="w-full"
                   onClick={() => resetMutation.mutate(dialogOpen)}
                   disabled={resetMutation.isPending || uploading}
@@ -744,7 +744,7 @@ function LogoSection() {
               {dialogOpen && getLogoUrl(dialogOpen) && (
                 <Button
                   type="button"
-                  variant="destructive"
+                  variant="outline-destructive"
                   className="w-full"
                   onClick={() => resetMutation.mutate(dialogOpen)}
                   disabled={resetMutation.isPending || uploading}
@@ -962,7 +962,7 @@ function FaviconSection() {
               {dialogOpen && isCustomFavicon(dialogOpen) && (
                 <Button
                   type="button"
-                  variant="destructive"
+                  variant="outline-destructive"
                   className="w-full"
                   onClick={() => resetMutation.mutate(dialogOpen)}
                   disabled={resetMutation.isPending || uploading}

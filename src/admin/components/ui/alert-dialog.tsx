@@ -87,6 +87,7 @@ const AlertDialogAction = React.forwardRef<
       | 'default'
       | 'destructive'
       | 'outline'
+      | 'outline-destructive'
       | 'secondary'
       | 'ghost'
       | 'ghost-destructive'
