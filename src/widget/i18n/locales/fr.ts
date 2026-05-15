@@ -1,7 +1,7 @@
 import type { WidgetCatalog } from '../catalog.js';
 
 const fr: WidgetCatalog = {
-  'tooltip.launcher': 'Tu as trouvé un bug ?',
+  'tooltip.launcher': 'Vous avez trouvé un bug ?',
 
   'aria.launcher': 'Signaler un bug',
   'aria.close': 'Fermer',
@@ -17,7 +17,7 @@ const fr: WidgetCatalog = {
   'dialog.fields.description.placeholder': 'Étapes de reproduction, comportement attendu, etc.',
   'dialog.fields.priority.label': 'Priorité',
   'dialog.fields.name.label': 'Nom (facultatif)',
-  'dialog.fields.name.placeholder': 'Ton nom',
+  'dialog.fields.name.placeholder': 'Votre nom',
   'dialog.fields.email.label': 'E-mail (facultatif)',
   'dialog.fields.email.placeholder': 'ton@email.com',
 
@@ -38,13 +38,13 @@ const fr: WidgetCatalog = {
 
   'closeConfirm.title': 'Enregistrer le brouillon ?',
   'closeConfirm.body':
-    'Tu as des modifications non enregistrées. Veux-tu les sauvegarder comme brouillon pour plus tard ?',
+    'Vous avez des modifications non enregistrées. Voulez-vous les sauvegarder comme brouillon pour plus tard ?',
   'closeConfirm.discardButton': 'Abandonner',
   'closeConfirm.saveDraftButton': 'Enregistrer le brouillon',
 
   'screenCapture.title': 'Permission du navigateur requise',
   'screenCapture.body':
-    "Ton navigateur va te demander l'autorisation de partager ton écran. Suis les étapes indiquées.",
+    "Votre navigateur va vous demander l'autorisation de partager votre écran. Suivez les étapes indiquées.",
   'screenCapture.browser.firefox': 'Firefox',
   'screenCapture.browser.chromeEdge': 'Chrome · Edge',
   'screenCapture.dontShowAgain': 'Ne plus afficher',
@@ -52,11 +52,11 @@ const fr: WidgetCatalog = {
   'screenCapture.confirm': 'Prendre la capture',
 
   'screenshot.privacyTip':
-    "Conseil : utilise l'outil d'annotation pour masquer les données sensibles avant d'envoyer.",
+    "Conseil : utilisez l'outil d'annotation pour masquer les données sensibles avant d'envoyer.",
   'screenshot.capturing': 'Capture en cours...',
   'screenshot.capture': "Capturer l'écran",
-  'screenshot.dropzone.title': 'Fais glisser tes fichiers ici',
-  'screenshot.dropzone.subtitle': 'ou clique pour parcourir',
+  'screenshot.dropzone.title': 'Faites glisser vos fichiers ici',
+  'screenshot.dropzone.subtitle': 'ou cliquez pour parcourir',
   'screenshot.addMore': "Ajouter d'autres",
   'screenshot.alt': "Capture d'écran",
   'screenshot.badge.annotated': 'Annoté',
