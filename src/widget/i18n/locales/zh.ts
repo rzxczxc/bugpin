@@ -1,12 +1,12 @@
 import type { WidgetCatalog } from '../catalog.js';
 
 const zh: WidgetCatalog = {
-  'tooltip.launcher': '发现 bug 了？',
+  'tooltip.launcher': '发现缺陷了？',
 
-  'aria.launcher': '报告 bug',
+  'aria.launcher': '报告缺陷',
   'aria.close': '关闭',
 
-  'dialog.title': '报告 bug',
+  'dialog.title': '缺陷报告',
   'dialog.tabs.details': '详情',
   'dialog.tabs.media': '截图',
   'dialog.tabs.mediaWithCount': '截图（{count}）',
@@ -19,7 +19,7 @@ const zh: WidgetCatalog = {
   'dialog.fields.name.label': '姓名（可选）',
   'dialog.fields.name.placeholder': '您的姓名',
   'dialog.fields.email.label': '邮箱（可选）',
-  'dialog.fields.email.placeholder': 'your@email.com',
+  'dialog.fields.email.placeholder': 'you@example.com',
 
   'dialog.priority.highest': '最高',
   'dialog.priority.high': '高',
@@ -28,7 +28,7 @@ const zh: WidgetCatalog = {
   'dialog.priority.lowest': '最低',
 
   'dialog.buttons.cancel': '取消',
-  'dialog.buttons.submit': '提交报告',
+  'dialog.buttons.submit': '提交缺陷报告',
 
   'dialog.branding.poweredBy': 'Powered by',
 
@@ -38,7 +38,7 @@ const zh: WidgetCatalog = {
 
   'closeConfirm.title': '保存草稿？',
   'closeConfirm.body': '您有未保存的更改。是否将其保存为草稿以便稍后继续？',
-  'closeConfirm.discardButton': '放弃',
+  'closeConfirm.discardButton': '丢弃',
   'closeConfirm.saveDraftButton': '保存草稿',
 
   'screenCapture.title': '需要浏览器权限',
@@ -69,7 +69,7 @@ const zh: WidgetCatalog = {
   'screenshot.error.videoTooLarge': '视频过大，最大不超过 {size}MB。',
   'screenshot.error.unsupportedFile': '不支持的文件类型：{type}',
 
-  'toast.success.submit': 'bug 报告已成功提交！',
+  'toast.success.submit': '缺陷报告已成功提交！',
   'toast.error.submit': '报告提交失败',
   'toast.error.capture': '截图失败',
 
