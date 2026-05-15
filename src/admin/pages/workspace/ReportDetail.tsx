@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -77,6 +77,19 @@ export function ReportDetail() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const canEdit = user?.role === 'admin' || user?.role === 'editor';
+
+  const [detailsOpen, setDetailsOpen] = usePersistedOpenState(
+    'bugpin.report-detail.details-open',
+    true
+  );
+  const [pageInfoOpen, setPageInfoOpen] = usePersistedOpenState(
+    'bugpin.report-detail.page-info-open',
+    true
+  );
+  const [environmentOpen, setEnvironmentOpen] = usePersistedOpenState(
+    'bugpin.report-detail.environment-open',
+    true
+  );
 
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
@@ -859,13 +872,18 @@ export function ReportDetail() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Status & Priority */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-1">
-                <Label className="text-muted-foreground block">Status</Label>
+          <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
+            <Card>
+              <CardHeader className="p-0">
+                <CollapsibleTrigger className="flex w-full items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-t-xl">
+                  <CardTitle>Details</CardTitle>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                </CollapsibleTrigger>
+              </CardHeader>
+              <CollapsibleContent>
+                <CardContent className="space-y-4 pt-4">
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground block">Status</Label>
                 {isEditing ? (
                   <>
                     <Select
@@ -997,62 +1015,80 @@ export function ReportDetail() {
                   )}
                 </div>
               )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           {/* Page Info */}
           {hasPageInfo && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Page Info</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <InfoRow label="URL" value={report.metadata?.url} isLink />
-                <InfoRow label="Page Title" value={report.metadata?.title} />
-                <InfoRow label="Referrer" value={report.metadata?.referrer} isLink />
-                <InfoRow
-                  label="Load Time"
-                  value={
-                    report.metadata?.pageLoadTime ? `${report.metadata.pageLoadTime}ms` : undefined
-                  }
-                />
-                <InfoRow label="Timezone" value={report.metadata?.timezone} />
-              </CardContent>
-            </Card>
+            <Collapsible open={pageInfoOpen} onOpenChange={setPageInfoOpen}>
+              <Card>
+                <CardHeader className="p-0">
+                  <CollapsibleTrigger className="flex w-full items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-t-xl">
+                    <CardTitle>Page Info</CardTitle>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                  </CollapsibleTrigger>
+                </CardHeader>
+                <CollapsibleContent>
+                  <CardContent className="space-y-3 text-sm pt-4">
+                    <InfoRow label="URL" value={report.metadata?.url} isLink />
+                    <InfoRow label="Page Title" value={report.metadata?.title} />
+                    <InfoRow label="Referrer" value={report.metadata?.referrer} isLink />
+                    <InfoRow
+                      label="Load Time"
+                      value={
+                        report.metadata?.pageLoadTime
+                          ? `${report.metadata.pageLoadTime}ms`
+                          : undefined
+                      }
+                    />
+                    <InfoRow label="Timezone" value={report.metadata?.timezone} />
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
           )}
 
           {/* Environment */}
           {hasEnvironment && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Environment</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <InfoRow
-                  label="Browser"
-                  value={formatEnvironmentValue(
-                    report.metadata?.browser?.name,
-                    report.metadata?.browser?.version
-                  )}
-                />
-                <InfoRow
-                  label="OS"
-                  value={formatEnvironmentValue(
-                    report.metadata?.device?.os,
-                    report.metadata?.device?.osVersion
-                  )}
-                />
-                <InfoRow label="Device" value={report.metadata?.device?.type} />
-                <InfoRow
-                  label="Viewport"
-                  value={
-                    report.metadata?.viewport?.width && report.metadata?.viewport?.height
-                      ? `${report.metadata.viewport.width}x${report.metadata.viewport.height}`
-                      : undefined
-                  }
-                />
-              </CardContent>
-            </Card>
+            <Collapsible open={environmentOpen} onOpenChange={setEnvironmentOpen}>
+              <Card>
+                <CardHeader className="p-0">
+                  <CollapsibleTrigger className="flex w-full items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-t-xl">
+                    <CardTitle>Environment</CardTitle>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                  </CollapsibleTrigger>
+                </CardHeader>
+                <CollapsibleContent>
+                  <CardContent className="space-y-3 text-sm pt-4">
+                    <InfoRow
+                      label="Browser"
+                      value={formatEnvironmentValue(
+                        report.metadata?.browser?.name,
+                        report.metadata?.browser?.version
+                      )}
+                    />
+                    <InfoRow
+                      label="OS"
+                      value={formatEnvironmentValue(
+                        report.metadata?.device?.os,
+                        report.metadata?.device?.osVersion
+                      )}
+                    />
+                    <InfoRow label="Device" value={report.metadata?.device?.type} />
+                    <InfoRow
+                      label="Viewport"
+                      value={
+                        report.metadata?.viewport?.width && report.metadata?.viewport?.height
+                          ? `${report.metadata.viewport.width}x${report.metadata.viewport.height}`
+                          : undefined
+                      }
+                    />
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
           )}
 
           {report.source === 'manual' && !hasPageInfo && !hasEnvironment && (
@@ -1296,6 +1332,36 @@ export function ReportDetail() {
       </AlertDialog>
     </div>
   );
+}
+
+function usePersistedOpenState(
+  key: string,
+  defaultOpen: boolean
+): [boolean, (open: boolean) => void] {
+  const [open, setOpenState] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return defaultOpen;
+    try {
+      const stored = window.localStorage.getItem(key);
+      if (stored === null) return defaultOpen;
+      return stored === 'true';
+    } catch {
+      return defaultOpen;
+    }
+  });
+
+  const setOpen = useCallback(
+    (next: boolean) => {
+      setOpenState(next);
+      try {
+        window.localStorage.setItem(key, String(next));
+      } catch {
+        // localStorage may be unavailable (private mode, quota); state stays in memory.
+      }
+    },
+    [key]
+  );
+
+  return [open, setOpen];
 }
 
 function InfoRow({ label, value, isLink }: { label: string; value?: string; isLink?: boolean }) {
