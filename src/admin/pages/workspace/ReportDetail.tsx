@@ -884,137 +884,141 @@ export function ReportDetail() {
                 <CardContent className="space-y-4 pt-4">
                   <div className="space-y-1">
                     <Label className="text-muted-foreground block">Status</Label>
-                {isEditing ? (
-                  <>
-                    <Select
-                      value={editData.status}
-                      onValueChange={(value) => setEditData({ ...editData, status: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="open">Open</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="resolved">Resolved</SelectItem>
-                        <SelectItem value="closed">Closed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {editData.status === 'resolved' && report.reporterEmail && messagingEnabled && (
-                      <div className="mt-2 space-y-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowResolveMessage(!showResolveMessage);
-                            if (showResolveMessage) setResolveMessage('');
-                          }}
-                          className="text-sm text-primary hover:underline flex items-center gap-1"
+                    {isEditing ? (
+                      <>
+                        <Select
+                          value={editData.status}
+                          onValueChange={(value) => setEditData({ ...editData, status: value })}
                         >
-                          <MessageSquare className="h-3 w-3" />
-                          {showResolveMessage
-                            ? 'Remove message for reporter'
-                            : 'Add a message for the reporter?'}
-                        </button>
-                        {showResolveMessage && (
-                          <>
-                            <Textarea
-                              placeholder="Optional message to send to the reporter..."
-                              value={resolveMessage}
-                              onChange={(e) => setResolveMessage(e.target.value)}
-                              rows={3}
-                              className="text-sm"
-                            />
-                            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
-                              <Checkbox
-                                checked={resolveCcSender}
-                                onCheckedChange={(checked) => setResolveCcSender(checked === true)}
-                              />
-                              Send me a copy
-                            </label>
-                          </>
-                        )}
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="open">Open</SelectItem>
+                            <SelectItem value="in_progress">In Progress</SelectItem>
+                            <SelectItem value="resolved">Resolved</SelectItem>
+                            <SelectItem value="closed">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {editData.status === 'resolved' &&
+                          report.reporterEmail &&
+                          messagingEnabled && (
+                            <div className="mt-2 space-y-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setShowResolveMessage(!showResolveMessage);
+                                  if (showResolveMessage) setResolveMessage('');
+                                }}
+                                className="text-sm text-primary hover:underline flex items-center gap-1"
+                              >
+                                <MessageSquare className="h-3 w-3" />
+                                {showResolveMessage
+                                  ? 'Remove message for reporter'
+                                  : 'Add a message for the reporter?'}
+                              </button>
+                              {showResolveMessage && (
+                                <>
+                                  <Textarea
+                                    placeholder="Optional message to send to the reporter..."
+                                    value={resolveMessage}
+                                    onChange={(e) => setResolveMessage(e.target.value)}
+                                    rows={3}
+                                    className="text-sm"
+                                  />
+                                  <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                                    <Checkbox
+                                      checked={resolveCcSender}
+                                      onCheckedChange={(checked) =>
+                                        setResolveCcSender(checked === true)
+                                      }
+                                    />
+                                    Send me a copy
+                                  </label>
+                                </>
+                              )}
+                            </div>
+                          )}
+                      </>
+                    ) : (
+                      <div>
+                        <StatusBadge status={report.status} />
                       </div>
                     )}
-                  </>
-                ) : (
-                  <div>
-                    <StatusBadge status={report.status} />
                   </div>
-                )}
-              </div>
-              <div className="space-y-1">
-                <Label className="text-muted-foreground block">Priority</Label>
-                {isEditing ? (
-                  <Select
-                    value={editData.priority}
-                    onValueChange={(value) => setEditData({ ...editData, priority: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="lowest">Lowest</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="highest">Highest</SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <div>
-                    <PriorityBadge priority={report.priority} />
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground block">Priority</Label>
+                    {isEditing ? (
+                      <Select
+                        value={editData.priority}
+                        onValueChange={(value) => setEditData({ ...editData, priority: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="lowest">Lowest</SelectItem>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="highest">Highest</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div>
+                        <PriorityBadge priority={report.priority} />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="space-y-1">
-                <Label className="text-muted-foreground block">Assignee</Label>
-                {isEditing ? (
-                  <Select
-                    value={editData.assignedTo}
-                    onValueChange={(value) => setEditData({ ...editData, assignedTo: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={UNASSIGNED_VALUE}>Unassigned</SelectItem>
-                      {assignableUsers.map((assignee) => (
-                        <SelectItem key={assignee.id} value={assignee.id}>
-                          <AssigneeDisplay user={assignee} size="sm" />
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <AssigneeDisplay user={report.assignee} showEmail />
-                )}
-              </div>
-              <Separator />
-              <div className="space-y-1">
-                <Label className="text-muted-foreground">Source</Label>
-                <div>
-                  <SourceBadge source={report.source} />
-                </div>
-              </div>
-              {manualChannel && (
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground">Channel</Label>
-                  <p className="text-sm capitalize">{manualChannel}</p>
-                </div>
-              )}
-              <div className="space-y-1">
-                <Label className="text-muted-foreground">Created</Label>
-                <p className="text-sm">{formatDateTime(report.createdAt)}</p>
-              </div>
-              {(report.reporterEmail || report.reporterName) && (
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground">Reporter</Label>
-                  {report.reporterName && <p className="text-sm">{report.reporterName}</p>}
-                  {report.reporterEmail && (
-                    <p className="text-sm text-muted-foreground">{report.reporterEmail}</p>
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground block">Assignee</Label>
+                    {isEditing ? (
+                      <Select
+                        value={editData.assignedTo}
+                        onValueChange={(value) => setEditData({ ...editData, assignedTo: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={UNASSIGNED_VALUE}>Unassigned</SelectItem>
+                          {assignableUsers.map((assignee) => (
+                            <SelectItem key={assignee.id} value={assignee.id}>
+                              <AssigneeDisplay user={assignee} size="sm" />
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <AssigneeDisplay user={report.assignee} showEmail />
+                    )}
+                  </div>
+                  <Separator />
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground">Source</Label>
+                    <div>
+                      <SourceBadge source={report.source} />
+                    </div>
+                  </div>
+                  {manualChannel && (
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground">Channel</Label>
+                      <p className="text-sm capitalize">{manualChannel}</p>
+                    </div>
                   )}
-                </div>
-              )}
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground">Created</Label>
+                    <p className="text-sm">{formatDateTime(report.createdAt)}</p>
+                  </div>
+                  {(report.reporterEmail || report.reporterName) && (
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground">Reporter</Label>
+                      {report.reporterName && <p className="text-sm">{report.reporterName}</p>}
+                      {report.reporterEmail && (
+                        <p className="text-sm text-muted-foreground">{report.reporterEmail}</p>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </CollapsibleContent>
             </Card>
@@ -1324,7 +1328,10 @@ export function ReportDetail() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="outline-destructive" onClick={() => deleteMutation.mutate()}>
+            <AlertDialogAction
+              variant="outline-destructive"
+              onClick={() => deleteMutation.mutate()}
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

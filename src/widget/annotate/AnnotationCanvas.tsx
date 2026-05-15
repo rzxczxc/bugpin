@@ -1042,11 +1042,7 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
           <ToolButton tool="pan" label={t('annotation.toolbar.pan')} icon={<Move />} />
           <ToolButton tool="pen" label={t('annotation.toolbar.pen')} icon={<Pencil />} />
           <ToolButton tool="line" label={t('annotation.toolbar.line')} icon={<Slash />} />
-          <ToolButton
-            tool="arrow"
-            label={t('annotation.toolbar.arrow')}
-            icon={<MoveUpRight />}
-          />
+          <ToolButton tool="arrow" label={t('annotation.toolbar.arrow')} icon={<MoveUpRight />} />
           <ToolButton
             tool="rectangle"
             label={t('annotation.toolbar.rectangle')}

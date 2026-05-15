@@ -1,10 +1,4 @@
-import type {
-  ConsoleError,
-  NetworkError,
-  Report,
-  StorageKeys,
-  UserActivity,
-} from '@shared/types';
+import type { ConsoleError, NetworkError, Report, StorageKeys, UserActivity } from '@shared/types';
 
 export type ExportFormat = 'markdown' | 'plain' | 'aiPrompt' | 'json';
 
@@ -527,11 +521,7 @@ export function exportFilename(reportId: string, format: ExportFormat): string {
   return `bugpin-report-${reportId}.${formatExtension(format)}`;
 }
 
-export function renderExport(
-  report: Report,
-  format: ExportFormat,
-  opts: ExportOptions
-): string {
+export function renderExport(report: Report, format: ExportFormat, opts: ExportOptions): string {
   switch (format) {
     case 'markdown':
       return toMarkdown(report, opts);

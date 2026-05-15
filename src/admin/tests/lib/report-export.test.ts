@@ -168,10 +168,7 @@ describe('toMarkdown', () => {
   });
 
   it('strips query strings when redaction is enabled', () => {
-    const md = toMarkdown(
-      makeReport(),
-      makeOptions({ redactions: { stripQueryStrings: true } })
-    );
+    const md = toMarkdown(makeReport(), makeOptions({ redactions: { stripQueryStrings: true } }));
     expect(md).toContain('https://example.com/checkout');
     expect(md).not.toContain('token=secret');
     expect(md).not.toContain('ref=email');
@@ -180,10 +177,7 @@ describe('toMarkdown', () => {
   });
 
   it('redacts input values when stripInputValues is enabled', () => {
-    const md = toMarkdown(
-      makeReport(),
-      makeOptions({ redactions: { stripInputValues: true } })
-    );
+    const md = toMarkdown(makeReport(), makeOptions({ redactions: { stripInputValues: true } }));
     expect(md).toContain('input email "[redacted]"');
     expect(md).not.toContain('user@example.com');
   });

@@ -123,9 +123,7 @@ function getSafePixelRatio(
   }
 
   const baseDpr =
-    typeof override === 'number' && override > 0
-      ? override
-      : window.devicePixelRatio || 1;
+    typeof override === 'number' && override > 0 ? override : window.devicePixelRatio || 1;
   let dpr = Math.min(baseDpr, MAX_PIXEL_RATIO);
 
   // Check if output would exceed limits and reduce DPR if needed
@@ -489,12 +487,7 @@ export async function captureScreenshot(options: CaptureOptions = {}): Promise<s
 
     // For visible mode: capture area that includes the viewport, then crop
     if (method === 'visible') {
-      const dpr = getSafePixelRatio(
-        viewportWidth,
-        viewportHeight,
-        'visible',
-        pixelRatioOverride
-      );
+      const dpr = getSafePixelRatio(viewportWidth, viewportHeight, 'visible', pixelRatioOverride);
       const bgColor = getBackgroundColor();
 
       // Calculate the area we need to capture (from origin to bottom of viewport)

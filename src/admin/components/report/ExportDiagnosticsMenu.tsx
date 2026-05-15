@@ -185,7 +185,9 @@ export function ExportDiagnosticsMenu({ report }: ExportDiagnosticsMenuProps) {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {isLastDownload ? `Download .${extension} (last used)` : `Download as .${extension}`}
+                        {isLastDownload
+                          ? `Download .${extension} (last used)`
+                          : `Download as .${extension}`}
                       </TooltipContent>
                     </Tooltip>
                   </div>

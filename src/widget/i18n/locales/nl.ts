@@ -14,7 +14,8 @@ const nl: WidgetCatalog = {
   'dialog.fields.title.label': 'Titel',
   'dialog.fields.title.placeholder': 'Korte beschrijving van het probleem',
   'dialog.fields.description.label': 'Beschrijving',
-  'dialog.fields.description.placeholder': 'Stappen om dit probleem te herhalen, verwacht gedrag, etc.',
+  'dialog.fields.description.placeholder':
+    'Stappen om dit probleem te herhalen, verwacht gedrag, etc.',
   'dialog.fields.priority.label': 'Prioriteit',
   'dialog.fields.name.label': 'Naam (optioneel)',
   'dialog.fields.name.placeholder': 'Uw naam',

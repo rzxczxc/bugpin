@@ -309,100 +309,100 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-        {media.length === 0 ? (
-          <div
-            class="flex flex-col items-center justify-center py-8 px-4 text-muted-foreground text-center cursor-pointer transition-colors hover:text-primary [&_svg]:hover:text-primary"
-            onClick={handleUploadClick}
-          >
-            <Upload class="w-12 h-12 mb-3 text-muted-foreground transition-colors" />
-            <p class="text-sm font-medium mb-1">{t('screenshot.dropzone.title')}</p>
-            <span class="text-xs text-muted-foreground">{t('screenshot.dropzone.subtitle')}</span>
-          </div>
-        ) : (
-          <div class="grid grid-cols-2 gap-3 p-3">
-            {media.map((item) => (
-              <div
-                key={item.id}
-                class="relative rounded overflow-hidden bg-background border border-solid border-border"
-              >
-                <div class="relative aspect-video bg-gray-800">
-                  {isVideo(item.mimeType) ? (
-                    <video class="w-full h-full object-contain" src={item.dataUrl} muted />
-                  ) : (
-                    <img
-                      class="w-full h-full object-contain"
-                      src={item.dataUrl}
-                      alt={t('screenshot.alt')}
-                    />
-                  )}
-                  {/* Badges */}
-                  <div class="absolute top-1.5 left-1.5 flex gap-1">
-                    {item.annotated && (
-                      <span class="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-blue-100 dark:bg-blue-900/70 text-blue-700 dark:text-blue-300">
-                        {t('screenshot.badge.annotated')}
-                      </span>
+          {media.length === 0 ? (
+            <div
+              class="flex flex-col items-center justify-center py-8 px-4 text-muted-foreground text-center cursor-pointer transition-colors hover:text-primary [&_svg]:hover:text-primary"
+              onClick={handleUploadClick}
+            >
+              <Upload class="w-12 h-12 mb-3 text-muted-foreground transition-colors" />
+              <p class="text-sm font-medium mb-1">{t('screenshot.dropzone.title')}</p>
+              <span class="text-xs text-muted-foreground">{t('screenshot.dropzone.subtitle')}</span>
+            </div>
+          ) : (
+            <div class="grid grid-cols-2 gap-3 p-3">
+              {media.map((item) => (
+                <div
+                  key={item.id}
+                  class="relative rounded overflow-hidden bg-background border border-solid border-border"
+                >
+                  <div class="relative aspect-video bg-gray-800">
+                    {isVideo(item.mimeType) ? (
+                      <video class="w-full h-full object-contain" src={item.dataUrl} muted />
+                    ) : (
+                      <img
+                        class="w-full h-full object-contain"
+                        src={item.dataUrl}
+                        alt={t('screenshot.alt')}
+                      />
                     )}
-                    {isVideo(item.mimeType) && (
-                      <span class="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                        {t('screenshot.badge.video')}
+                    {/* Badges */}
+                    <div class="absolute top-1.5 left-1.5 flex gap-1">
+                      {item.annotated && (
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-blue-100 dark:bg-blue-900/70 text-blue-700 dark:text-blue-300">
+                          {t('screenshot.badge.annotated')}
+                        </span>
+                      )}
+                      {isVideo(item.mimeType) && (
+                        <span class="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                          {t('screenshot.badge.video')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div class="flex justify-between px-2 py-1.5 text-xs text-muted-foreground border-t border-solid border-border">
+                    <span>{formatTimestamp(item.timestamp)}</span>
+                    {item.width && item.height && (
+                      <span>
+                        {item.width} x {item.height}
                       </span>
                     )}
                   </div>
-                </div>
-                <div class="flex justify-between px-2 py-1.5 text-xs text-muted-foreground border-t border-solid border-border">
-                  <span>{formatTimestamp(item.timestamp)}</span>
-                  {item.width && item.height && (
-                    <span>
-                      {item.width} x {item.height}
-                    </span>
-                  )}
-                </div>
-                <div class="flex gap-1 px-2 py-1.5 border-t border-solid border-border bg-muted">
-                  {enableAnnotation && isImage(item.mimeType) && (
+                  <div class="flex gap-1 px-2 py-1.5 border-t border-solid border-border bg-muted">
+                    {enableAnnotation && isImage(item.mimeType) && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        class="w-7 h-7 bg-background hover:bg-foreground/10 text-foreground"
+                        onClick={() => onAnnotate(item.id)}
+                        title={t('screenshot.action.annotate')}
+                      >
+                        <Pencil class="w-4 h-4" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"
                       class="w-7 h-7 bg-background hover:bg-foreground/10 text-foreground"
-                      onClick={() => onAnnotate(item.id)}
-                      title={t('screenshot.action.annotate')}
+                      onClick={() => handleDownload(item)}
+                      title={t('screenshot.action.download')}
                     >
-                      <Pencil class="w-4 h-4" />
+                      <Download class="w-4 h-4" />
                     </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    class="w-7 h-7 bg-background hover:bg-foreground/10 text-foreground"
-                    onClick={() => handleDownload(item)}
-                    title={t('screenshot.action.download')}
-                  >
-                    <Download class="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    class="w-7 h-7 bg-background hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 text-foreground"
-                    onClick={() => onRemove(item.id)}
-                    title={t('screenshot.action.remove')}
-                  >
-                    <Trash2 class="w-4 h-4" />
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      class="w-7 h-7 bg-background hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 text-foreground"
+                      onClick={() => onRemove(item.id)}
+                      title={t('screenshot.action.remove')}
+                    >
+                      <Trash2 class="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
+              ))}
+              {/* Drop more area as a grid item */}
+              <div
+                class="flex flex-col items-center justify-center gap-2 min-h-28 border-2 border-dashed border-border rounded bg-muted cursor-pointer transition-colors hover:border-primary hover:bg-primary/5 [&_svg]:hover:text-primary [&_span]:hover:text-primary"
+                onClick={handleUploadClick}
+              >
+                <Plus class="w-8 h-8 text-muted-foreground transition-colors" />
+                <span class="text-xs text-muted-foreground transition-colors">
+                  {t('screenshot.addMore')}
+                </span>
               </div>
-            ))}
-            {/* Drop more area as a grid item */}
-            <div
-              class="flex flex-col items-center justify-center gap-2 min-h-28 border-2 border-dashed border-border rounded bg-muted cursor-pointer transition-colors hover:border-primary hover:bg-primary/5 [&_svg]:hover:text-primary [&_span]:hover:text-primary"
-              onClick={handleUploadClick}
-            >
-              <Plus class="w-8 h-8 text-muted-foreground transition-colors" />
-              <span class="text-xs text-muted-foreground transition-colors">
-                {t('screenshot.addMore')}
-              </span>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
         {/* Helper text */}
         <p class="text-xs text-muted-foreground text-center">
