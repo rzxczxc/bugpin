@@ -219,11 +219,11 @@ export const ScreenshotManager: FunctionComponent<ScreenshotManagerProps> = ({
           while the media grid below scrolls independently. */}
       <div class="shrink-0 flex flex-col gap-4 px-6 pt-6 pb-4">
         <div
-          class="flex items-center justify-between gap-3 text-xs text-muted-foreground select-none"
+          class="flex items-center justify-end gap-2 text-xs text-muted-foreground select-none"
           title={t('screenshot.quality.tooltip')}
         >
-          <span>{t('screenshot.quality.label')}</span>
-          <label class="cursor-pointer">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <span>{t('screenshot.quality.label')}</span>
             <input
               type="checkbox"
               class="peer sr-only"
