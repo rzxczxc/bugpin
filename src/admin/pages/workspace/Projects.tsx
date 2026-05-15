@@ -539,7 +539,7 @@ function SortableProjectCard({
               <RefreshCw className="h-4 w-4" />
               <span className="hidden sm:inline">Regenerate Key</span>
             </Button>
-            <Button variant="destructive" size="sm" onClick={onDelete} title="Delete">
+            <Button variant="outline-destructive" size="sm" onClick={onDelete} title="Delete">
               <Trash2 className="h-4 w-4" />
               <span className="hidden sm:inline">Delete</span>
             </Button>

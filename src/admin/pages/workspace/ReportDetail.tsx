@@ -376,7 +376,7 @@ export function ReportDetail() {
                 )}
                 {isAdmin && (
                   <Button
-                    variant="destructive"
+                    variant="outline-destructive"
                     onClick={() => setShowDeleteDialog(true)}
                     disabled={deleteMutation.isPending}
                   >

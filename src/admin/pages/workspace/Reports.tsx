@@ -579,7 +579,7 @@ export function Reports() {
 
                 {/* Delete button */}
                 <Button
-                  variant="destructive"
+                  variant="outline-destructive"
                   size="sm"
                   onClick={() => setShowDeleteConfirm(true)}
                   disabled={bulkDeleteMutation.isPending}
