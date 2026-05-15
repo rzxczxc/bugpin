@@ -17,7 +17,7 @@ import type { AppSettings, ScreenshotSettings } from '@shared/types';
 export function Screenshot() {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<ScreenshotSettings>({
-    maxScreenshotSize: 5,
+    maxScreenshotSize: 10,
     maxImageUploadSizeMb: 10,
     maxVideoUploadSizeMb: 50,
     useScreenCaptureAPI: false,
@@ -34,7 +34,7 @@ export function Screenshot() {
   useEffect(() => {
     if (settings) {
       setFormData({
-        maxScreenshotSize: settings.screenshot.maxScreenshotSize || 5,
+        maxScreenshotSize: settings.screenshot.maxScreenshotSize || 10,
         maxImageUploadSizeMb: settings.screenshot.maxImageUploadSizeMb || 10,
         maxVideoUploadSizeMb: settings.screenshot.maxVideoUploadSizeMb || 50,
         useScreenCaptureAPI: settings.screenshot.useScreenCaptureAPI || false,
@@ -60,7 +60,7 @@ export function Screenshot() {
     e.preventDefault();
     mutation.mutate({
       screenshot: {
-        maxScreenshotSize: formData.maxScreenshotSize || 5,
+        maxScreenshotSize: formData.maxScreenshotSize || 10,
         maxImageUploadSizeMb: formData.maxImageUploadSizeMb || 10,
         maxVideoUploadSizeMb: formData.maxVideoUploadSizeMb || 50,
         useScreenCaptureAPI: formData.useScreenCaptureAPI || false,

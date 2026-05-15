@@ -29,7 +29,7 @@ export function ScreenshotSettingsForm({
   const effectiveUseScreenCaptureAPI =
     value.useScreenCaptureAPI ?? globalSettings?.screenshot.useScreenCaptureAPI ?? false;
   const effectiveMaxScreenshotSize =
-    value.maxScreenshotSize ?? globalSettings?.screenshot.maxScreenshotSize ?? 5;
+    value.maxScreenshotSize ?? globalSettings?.screenshot.maxScreenshotSize ?? 10;
   const effectiveMaxImageUploadSizeMb =
     value.maxImageUploadSizeMb ?? globalSettings?.screenshot.maxImageUploadSizeMb ?? 10;
   const effectiveMaxVideoUploadSizeMb =
@@ -80,7 +80,7 @@ export function ScreenshotSettingsForm({
               max={50}
               value={effectiveMaxScreenshotSize}
               onChange={(e) =>
-                onChange({ ...value, maxScreenshotSize: parseInt(e.target.value) || 5 })
+                onChange({ ...value, maxScreenshotSize: parseInt(e.target.value) || 10 })
               }
               disabled={disabled}
             />

@@ -196,7 +196,7 @@ widget.post('/submit', dynamicRateLimiter({ keyGenerator: apiKeyGenerator }), as
   // Filter and prepare media files data
   const settings = await settingsCacheService.getAll();
   const imageLimitMb = Math.max(
-    settings.screenshot.maxScreenshotSize ?? 5,
+    settings.screenshot.maxScreenshotSize ?? 10,
     settings.screenshot.maxImageUploadSizeMb ?? 10
   );
   const maxFileSizeBytes = imageLimitMb * 1024 * 1024;
