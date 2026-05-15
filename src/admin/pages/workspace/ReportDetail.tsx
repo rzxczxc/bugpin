@@ -46,10 +46,10 @@ import {
   ZoomIn,
   AlertCircle,
   RefreshCw,
-  Github,
   CheckCircle,
   MessageSquare,
 } from 'lucide-react';
+import { Github } from '../../components/icons/Github';
 import {
   Collapsible,
   CollapsibleTrigger,
