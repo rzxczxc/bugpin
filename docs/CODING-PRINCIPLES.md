@@ -218,7 +218,7 @@ export function MyComponent() { }
 
 ## Widget Constraints
 
-- Bundle size: <50KB gzipped
+- Bundle size: <150KB gzipped
 - No external runtime dependencies (Preact is bundled)
 - Must work in Shadow DOM (no global CSS leakage)
 - Offline-first with IndexedDB queue

@@ -8,6 +8,7 @@ build
 
 # Runtime data
 data
+uploads
 
 # Database files
 *.db
@@ -23,12 +24,27 @@ pnpm-lock.yaml
 # Cache
 .vite
 .cache
+.bun
+
+# Local/editor metadata
+.claude
+.obsidian
+.vscode
+.idea
+*.code-workspace
 
 # Coverage
 coverage
 
 # Logs
+logs
 *.log
+
+# Temporary files
+tmp
+temp
+*.tmp
+.temp
 
 # Generated/minified
 *.min.js

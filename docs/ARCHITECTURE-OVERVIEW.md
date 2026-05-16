@@ -91,7 +91,7 @@ Client Request
 
 ## Widget Constraints
 
-- Bundle size: <50KB gzipped
+- Bundle size: <150KB gzipped
 - No external runtime dependencies
 - Shadow DOM for CSS isolation
 - Offline-first with IndexedDB queue

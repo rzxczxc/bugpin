@@ -18,7 +18,7 @@ vi.mock('../../../hooks/useIntegrations', () => ({
 }));
 
 vi.mock('../../../lib/integration-types', async () => {
-  const { Github } = await import('lucide-react');
+  const { Github } = await import('../../../components/icons/Github');
   return {
     CE_INTEGRATION_TYPES: [
       {

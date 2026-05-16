@@ -105,7 +105,7 @@ export const defaultConfig: WidgetConfig = {
   enableConsoleCapture: true,
   captureMethod: 'visible',
   useScreenCaptureAPI: false,
-  maxScreenshotSize: 5 * 1024 * 1024, // 5MB
+  maxScreenshotSize: 10 * 1024 * 1024, // 10MB
   maxImageUploadSize: 10 * 1024 * 1024, // 10MB
   maxVideoUploadSize: 50 * 1024 * 1024, // 50MB
 };

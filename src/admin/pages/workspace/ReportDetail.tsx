@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -39,16 +39,17 @@ import {
 import {
   ChevronLeft,
   ChevronDown,
+  Download,
   ExternalLink,
   Send,
   X,
   ZoomIn,
   AlertCircle,
   RefreshCw,
-  Github,
   CheckCircle,
   MessageSquare,
 } from 'lucide-react';
+import { Github } from '../../components/icons/Github';
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -57,6 +58,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { Spinner } from '../../components/ui/spinner';
 import { formatDate, formatDateTime } from '../../lib/utils';
+import {
+  buildPermalink,
+  defaultExportOptions,
+  toPlain,
+  type ExportSectionToggles,
+} from '../../lib/reportExport';
+import { CopySectionButton } from '../../components/report/CopySectionButton';
+import { ExportDiagnosticsMenu } from '../../components/report/ExportDiagnosticsMenu';
 import type { AppSettings, Project, Report, ReportSource, User } from '@shared/types';
 
 const UNASSIGNED_VALUE = '__unassigned__';
@@ -69,6 +78,19 @@ export function ReportDetail() {
   const isAdmin = user?.role === 'admin';
   const canEdit = user?.role === 'admin' || user?.role === 'editor';
 
+  const [detailsOpen, setDetailsOpen] = usePersistedOpenState(
+    'bugpin.report-detail.details-open',
+    true
+  );
+  const [pageInfoOpen, setPageInfoOpen] = usePersistedOpenState(
+    'bugpin.report-detail.page-info-open',
+    true
+  );
+  const [environmentOpen, setEnvironmentOpen] = usePersistedOpenState(
+    'bugpin.report-detail.environment-open',
+    true
+  );
+
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
     status: '',
@@ -76,7 +98,7 @@ export function ReportDetail() {
     assignedTo: UNASSIGNED_VALUE,
   });
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [viewingImage, setViewingImage] = useState<{ url: string; filename: string } | null>(null);
   const [composeMessage, setComposeMessage] = useState('');
   const [composeCcSender, setComposeCcSender] = useState(false);
   const [resolveMessage, setResolveMessage] = useState('');
@@ -232,6 +254,22 @@ export function ReportDetail() {
     report.metadata?.viewport?.height
   );
 
+  const sectionPlain = (section: keyof ExportSectionToggles): string => {
+    const base = defaultExportOptions(buildPermalink(report.id));
+    const sections: ExportSectionToggles = {
+      summary: false,
+      environment: false,
+      page: false,
+      console: false,
+      network: false,
+      userActivity: false,
+      storageKeys: false,
+      reporter: false,
+    };
+    sections[section] = true;
+    return toPlain(report, { ...base, sections });
+  };
+
   const messagingEnabled = (() => {
     if (projectData?.settings?.notifyReporter === false) return false;
     const effectiveEmailEnabled =
@@ -318,19 +356,20 @@ export function ReportDetail() {
           </Button>
           <h1 className="text-2xl font-bold">{report.title}</h1>
         </div>
-        {canEdit && (
-          <div className="flex gap-2">
-            {isEditing ? (
-              <>
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? 'Saving...' : 'Save'}
-                </Button>
-              </>
-            ) : (
-              <>
+        <div className="flex gap-2">
+          {canEdit && isEditing ? (
+            <>
+              <Button variant="outline" onClick={() => setIsEditing(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? 'Saving...' : 'Save'}
+              </Button>
+            </>
+          ) : (
+            <>
+              <ExportDiagnosticsMenu report={report} />
+              {canEdit && (
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -344,49 +383,49 @@ export function ReportDetail() {
                 >
                   Edit
                 </Button>
-                {isAdmin && activeIntegrations.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" disabled={forwardMutation.isPending}>
-                        {forwardMutation.isPending ? (
-                          <>
-                            <Spinner size="sm" className="mr-2" />
-                            Forwarding...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="h-4 w-4 mr-2" />
-                            Forward
-                          </>
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {activeIntegrations.map((integration) => (
-                        <DropdownMenuItem
-                          key={integration.id}
-                          onClick={() => handleForward(integration.id, integration.name)}
-                        >
-                          {integration.type === 'github' && 'GitHub: '}
-                          {integration.name}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-                {isAdmin && (
-                  <Button
-                    variant="outline-destructive"
-                    onClick={() => setShowDeleteDialog(true)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    Delete
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
-        )}
+              )}
+              {canEdit && isAdmin && activeIntegrations.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" disabled={forwardMutation.isPending}>
+                      {forwardMutation.isPending ? (
+                        <>
+                          <Spinner size="sm" className="mr-2" />
+                          Forwarding...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4 mr-2" />
+                          Forward
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {activeIntegrations.map((integration) => (
+                      <DropdownMenuItem
+                        key={integration.id}
+                        onClick={() => handleForward(integration.id, integration.name)}
+                      >
+                        {integration.type === 'github' && 'GitHub: '}
+                        {integration.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              {canEdit && isAdmin && (
+                <Button
+                  variant="outline-destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                  disabled={deleteMutation.isPending}
+                >
+                  Delete
+                </Button>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -417,7 +456,12 @@ export function ReportDetail() {
                         ) : (
                           <button
                             type="button"
-                            onClick={() => setViewingImage(fileUrl)}
+                            onClick={() =>
+                              setViewingImage({
+                                url: fileUrl,
+                                filename: file.filename || `screenshot-${file.id}.png`,
+                              })
+                            }
                             className="w-full cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
                           >
                             <img
@@ -431,6 +475,16 @@ export function ReportDetail() {
                             </div>
                           </button>
                         )}
+                        <a
+                          href={fileUrl}
+                          download={file.filename || `screenshot-${file.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute top-2 right-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md bg-black/60 text-white opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity hover:bg-black/80"
+                          title="Download"
+                          aria-label={`Download ${file.filename || 'screenshot'}`}
+                        >
+                          <Download className="w-4 h-4" />
+                        </a>
                       </div>
                     );
                   })}
@@ -453,28 +507,46 @@ export function ReportDetail() {
                 <X className="w-8 h-8" />
               </button>
               <img
-                src={viewingImage}
+                src={viewingImage.url}
                 alt="Full size screenshot"
                 className="max-w-full max-h-full object-contain"
                 onClick={(e) => e.stopPropagation()}
               />
-              <a
-                href={viewingImage}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute bottom-4 right-4 text-white hover:text-gray-300 transition-colors flex items-center gap-2"
+              <div
+                className="absolute bottom-4 right-4 flex items-center gap-4"
                 onClick={(e) => e.stopPropagation()}
               >
-                <ExternalLink className="w-5 h-5" />
-                Open in new tab
-              </a>
+                <a
+                  href={viewingImage.url}
+                  download={viewingImage.filename}
+                  className="text-white hover:text-gray-300 transition-colors flex items-center gap-2"
+                >
+                  <Download className="w-5 h-5" />
+                  Download
+                </a>
+                <a
+                  href={viewingImage.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white hover:text-gray-300 transition-colors flex items-center gap-2"
+                >
+                  <ExternalLink className="w-5 h-5" />
+                  Open in new tab
+                </a>
+              </div>
             </div>
           )}
 
           {/* Description */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex-row items-center justify-between space-y-0">
               <CardTitle>Description</CardTitle>
+              {report.description && (
+                <CopySectionButton
+                  label="description"
+                  getContent={() => report.description ?? ''}
+                />
+              )}
             </CardHeader>
             <CardContent>
               <p className="whitespace-pre-wrap text-muted-foreground">
@@ -487,17 +559,23 @@ export function ReportDetail() {
           {consoleErrors.length > 0 && (
             <Collapsible>
               <Card>
-                <CollapsibleTrigger className="w-full">
-                  <CardHeader className="flex-row items-center justify-between space-y-0 cursor-pointer hover:bg-muted/50 transition-colors">
+                <CardHeader className="flex-row items-center justify-between space-y-0 p-0">
+                  <CollapsibleTrigger className="flex flex-1 items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-tl-xl">
                     <CardTitle>
                       Console Output
                       <span className="ml-2 text-sm font-normal text-muted-foreground">
                         ({consoleErrors.length})
                       </span>
                     </CardTitle>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
-                  </CardHeader>
-                </CollapsibleTrigger>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                  </CollapsibleTrigger>
+                  <div className="pr-3 pl-1">
+                    <CopySectionButton
+                      label="console output"
+                      getContent={() => sectionPlain('console')}
+                    />
+                  </div>
+                </CardHeader>
                 <CollapsibleContent>
                   <CardContent className="pt-4">
                     <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2">
@@ -538,17 +616,23 @@ export function ReportDetail() {
           {networkErrors.length > 0 && (
             <Collapsible>
               <Card>
-                <CollapsibleTrigger className="w-full">
-                  <CardHeader className="flex-row items-center justify-between space-y-0 cursor-pointer hover:bg-muted/50 transition-colors">
+                <CardHeader className="flex-row items-center justify-between space-y-0 p-0">
+                  <CollapsibleTrigger className="flex flex-1 items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-tl-xl">
                     <CardTitle>
                       Network Errors
                       <span className="ml-2 text-sm font-normal text-muted-foreground">
                         ({networkErrors.length})
                       </span>
                     </CardTitle>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
-                  </CardHeader>
-                </CollapsibleTrigger>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                  </CollapsibleTrigger>
+                  <div className="pr-3 pl-1">
+                    <CopySectionButton
+                      label="network errors"
+                      getContent={() => sectionPlain('network')}
+                    />
+                  </div>
+                </CardHeader>
                 <CollapsibleContent>
                   <CardContent className="space-y-2 pt-4">
                     {networkErrors.map(
@@ -585,17 +669,23 @@ export function ReportDetail() {
           {userActivity.length > 0 && (
             <Collapsible>
               <Card>
-                <CollapsibleTrigger className="w-full">
-                  <CardHeader className="flex-row items-center justify-between space-y-0 cursor-pointer hover:bg-muted/50 transition-colors">
+                <CardHeader className="flex-row items-center justify-between space-y-0 p-0">
+                  <CollapsibleTrigger className="flex flex-1 items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-tl-xl">
                     <CardTitle>
                       User Activity Trail
                       <span className="ml-2 text-sm font-normal text-muted-foreground">
                         ({userActivity.length} events)
                       </span>
                     </CardTitle>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
-                  </CardHeader>
-                </CollapsibleTrigger>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                  </CollapsibleTrigger>
+                  <div className="pr-3 pl-1">
+                    <CopySectionButton
+                      label="user activity"
+                      getContent={() => sectionPlain('userActivity')}
+                    />
+                  </div>
+                </CardHeader>
                 <CollapsibleContent>
                   <CardContent className="pt-4">
                     <div className="space-y-2 max-h-[480px] overflow-y-auto pr-2">
@@ -699,8 +789,8 @@ export function ReportDetail() {
               report.metadata.storageKeys.sessionStorage?.length > 0) && (
               <Collapsible>
                 <Card>
-                  <CollapsibleTrigger className="w-full">
-                    <CardHeader className="flex-row items-center justify-between space-y-0 cursor-pointer hover:bg-muted/50 transition-colors">
+                  <CardHeader className="flex-row items-center justify-between space-y-0 p-0">
+                    <CollapsibleTrigger className="flex flex-1 items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-tl-xl">
                       <CardTitle>
                         Storage Keys
                         <span className="ml-2 text-sm font-normal text-muted-foreground">
@@ -711,9 +801,15 @@ export function ReportDetail() {
                           )
                         </span>
                       </CardTitle>
-                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
-                    </CardHeader>
-                  </CollapsibleTrigger>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                    </CollapsibleTrigger>
+                    <div className="pr-3 pl-1">
+                      <CopySectionButton
+                        label="storage keys"
+                        getContent={() => sectionPlain('storageKeys')}
+                      />
+                    </div>
+                  </CardHeader>
                   <CollapsibleContent>
                     <CardContent className="pt-4">
                       <div className="max-h-[400px] overflow-y-auto">
@@ -776,200 +872,227 @@ export function ReportDetail() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Status & Priority */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-1">
-                <Label className="text-muted-foreground block">Status</Label>
-                {isEditing ? (
-                  <>
-                    <Select
-                      value={editData.status}
-                      onValueChange={(value) => setEditData({ ...editData, status: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="open">Open</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="resolved">Resolved</SelectItem>
-                        <SelectItem value="closed">Closed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {editData.status === 'resolved' && report.reporterEmail && messagingEnabled && (
-                      <div className="mt-2 space-y-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowResolveMessage(!showResolveMessage);
-                            if (showResolveMessage) setResolveMessage('');
-                          }}
-                          className="text-sm text-primary hover:underline flex items-center gap-1"
+          <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
+            <Card>
+              <CardHeader className="p-0">
+                <CollapsibleTrigger className="flex w-full items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-t-xl">
+                  <CardTitle>Details</CardTitle>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                </CollapsibleTrigger>
+              </CardHeader>
+              <CollapsibleContent>
+                <CardContent className="space-y-4 pt-4">
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground block">Status</Label>
+                    {isEditing ? (
+                      <>
+                        <Select
+                          value={editData.status}
+                          onValueChange={(value) => setEditData({ ...editData, status: value })}
                         >
-                          <MessageSquare className="h-3 w-3" />
-                          {showResolveMessage
-                            ? 'Remove message for reporter'
-                            : 'Add a message for the reporter?'}
-                        </button>
-                        {showResolveMessage && (
-                          <>
-                            <Textarea
-                              placeholder="Optional message to send to the reporter..."
-                              value={resolveMessage}
-                              onChange={(e) => setResolveMessage(e.target.value)}
-                              rows={3}
-                              className="text-sm"
-                            />
-                            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
-                              <Checkbox
-                                checked={resolveCcSender}
-                                onCheckedChange={(checked) => setResolveCcSender(checked === true)}
-                              />
-                              Send me a copy
-                            </label>
-                          </>
-                        )}
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="open">Open</SelectItem>
+                            <SelectItem value="in_progress">In Progress</SelectItem>
+                            <SelectItem value="resolved">Resolved</SelectItem>
+                            <SelectItem value="closed">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {editData.status === 'resolved' &&
+                          report.reporterEmail &&
+                          messagingEnabled && (
+                            <div className="mt-2 space-y-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setShowResolveMessage(!showResolveMessage);
+                                  if (showResolveMessage) setResolveMessage('');
+                                }}
+                                className="text-sm text-primary hover:underline flex items-center gap-1"
+                              >
+                                <MessageSquare className="h-3 w-3" />
+                                {showResolveMessage
+                                  ? 'Remove message for reporter'
+                                  : 'Add a message for the reporter?'}
+                              </button>
+                              {showResolveMessage && (
+                                <>
+                                  <Textarea
+                                    placeholder="Optional message to send to the reporter..."
+                                    value={resolveMessage}
+                                    onChange={(e) => setResolveMessage(e.target.value)}
+                                    rows={3}
+                                    className="text-sm"
+                                  />
+                                  <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                                    <Checkbox
+                                      checked={resolveCcSender}
+                                      onCheckedChange={(checked) =>
+                                        setResolveCcSender(checked === true)
+                                      }
+                                    />
+                                    Send me a copy
+                                  </label>
+                                </>
+                              )}
+                            </div>
+                          )}
+                      </>
+                    ) : (
+                      <div>
+                        <StatusBadge status={report.status} />
                       </div>
                     )}
-                  </>
-                ) : (
-                  <div>
-                    <StatusBadge status={report.status} />
                   </div>
-                )}
-              </div>
-              <div className="space-y-1">
-                <Label className="text-muted-foreground block">Priority</Label>
-                {isEditing ? (
-                  <Select
-                    value={editData.priority}
-                    onValueChange={(value) => setEditData({ ...editData, priority: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="lowest">Lowest</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="highest">Highest</SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <div>
-                    <PriorityBadge priority={report.priority} />
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground block">Priority</Label>
+                    {isEditing ? (
+                      <Select
+                        value={editData.priority}
+                        onValueChange={(value) => setEditData({ ...editData, priority: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="lowest">Lowest</SelectItem>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="highest">Highest</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div>
+                        <PriorityBadge priority={report.priority} />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="space-y-1">
-                <Label className="text-muted-foreground block">Assignee</Label>
-                {isEditing ? (
-                  <Select
-                    value={editData.assignedTo}
-                    onValueChange={(value) => setEditData({ ...editData, assignedTo: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={UNASSIGNED_VALUE}>Unassigned</SelectItem>
-                      {assignableUsers.map((assignee) => (
-                        <SelectItem key={assignee.id} value={assignee.id}>
-                          <AssigneeDisplay user={assignee} size="sm" />
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <AssigneeDisplay user={report.assignee} showEmail />
-                )}
-              </div>
-              <Separator />
-              <div className="space-y-1">
-                <Label className="text-muted-foreground">Source</Label>
-                <div>
-                  <SourceBadge source={report.source} />
-                </div>
-              </div>
-              {manualChannel && (
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground">Channel</Label>
-                  <p className="text-sm capitalize">{manualChannel}</p>
-                </div>
-              )}
-              <div className="space-y-1">
-                <Label className="text-muted-foreground">Created</Label>
-                <p className="text-sm">{formatDateTime(report.createdAt)}</p>
-              </div>
-              {(report.reporterEmail || report.reporterName) && (
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground">Reporter</Label>
-                  {report.reporterName && <p className="text-sm">{report.reporterName}</p>}
-                  {report.reporterEmail && (
-                    <p className="text-sm text-muted-foreground">{report.reporterEmail}</p>
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground block">Assignee</Label>
+                    {isEditing ? (
+                      <Select
+                        value={editData.assignedTo}
+                        onValueChange={(value) => setEditData({ ...editData, assignedTo: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={UNASSIGNED_VALUE}>Unassigned</SelectItem>
+                          {assignableUsers.map((assignee) => (
+                            <SelectItem key={assignee.id} value={assignee.id}>
+                              <AssigneeDisplay user={assignee} size="sm" />
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <AssigneeDisplay user={report.assignee} showEmail />
+                    )}
+                  </div>
+                  <Separator />
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground">Source</Label>
+                    <div>
+                      <SourceBadge source={report.source} />
+                    </div>
+                  </div>
+                  {manualChannel && (
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground">Channel</Label>
+                      <p className="text-sm capitalize">{manualChannel}</p>
+                    </div>
                   )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground">Created</Label>
+                    <p className="text-sm">{formatDateTime(report.createdAt)}</p>
+                  </div>
+                  {(report.reporterEmail || report.reporterName) && (
+                    <div className="space-y-1">
+                      <Label className="text-muted-foreground">Reporter</Label>
+                      {report.reporterName && <p className="text-sm">{report.reporterName}</p>}
+                      {report.reporterEmail && (
+                        <p className="text-sm text-muted-foreground">{report.reporterEmail}</p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           {/* Page Info */}
           {hasPageInfo && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Page Info</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <InfoRow label="URL" value={report.metadata?.url} isLink />
-                <InfoRow label="Page Title" value={report.metadata?.title} />
-                <InfoRow label="Referrer" value={report.metadata?.referrer} isLink />
-                <InfoRow
-                  label="Load Time"
-                  value={
-                    report.metadata?.pageLoadTime ? `${report.metadata.pageLoadTime}ms` : undefined
-                  }
-                />
-                <InfoRow label="Timezone" value={report.metadata?.timezone} />
-              </CardContent>
-            </Card>
+            <Collapsible open={pageInfoOpen} onOpenChange={setPageInfoOpen}>
+              <Card>
+                <CardHeader className="p-0">
+                  <CollapsibleTrigger className="flex w-full items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-t-xl">
+                    <CardTitle>Page Info</CardTitle>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                  </CollapsibleTrigger>
+                </CardHeader>
+                <CollapsibleContent>
+                  <CardContent className="space-y-3 text-sm pt-4">
+                    <InfoRow label="URL" value={report.metadata?.url} isLink />
+                    <InfoRow label="Page Title" value={report.metadata?.title} />
+                    <InfoRow label="Referrer" value={report.metadata?.referrer} isLink />
+                    <InfoRow
+                      label="Load Time"
+                      value={
+                        report.metadata?.pageLoadTime
+                          ? `${report.metadata.pageLoadTime}ms`
+                          : undefined
+                      }
+                    />
+                    <InfoRow label="Timezone" value={report.metadata?.timezone} />
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
           )}
 
           {/* Environment */}
           {hasEnvironment && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Environment</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <InfoRow
-                  label="Browser"
-                  value={formatEnvironmentValue(
-                    report.metadata?.browser?.name,
-                    report.metadata?.browser?.version
-                  )}
-                />
-                <InfoRow
-                  label="OS"
-                  value={formatEnvironmentValue(
-                    report.metadata?.device?.os,
-                    report.metadata?.device?.osVersion
-                  )}
-                />
-                <InfoRow label="Device" value={report.metadata?.device?.type} />
-                <InfoRow
-                  label="Viewport"
-                  value={
-                    report.metadata?.viewport?.width && report.metadata?.viewport?.height
-                      ? `${report.metadata.viewport.width}x${report.metadata.viewport.height}`
-                      : undefined
-                  }
-                />
-              </CardContent>
-            </Card>
+            <Collapsible open={environmentOpen} onOpenChange={setEnvironmentOpen}>
+              <Card>
+                <CardHeader className="p-0">
+                  <CollapsibleTrigger className="flex w-full items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-t-xl">
+                    <CardTitle>Environment</CardTitle>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                  </CollapsibleTrigger>
+                </CardHeader>
+                <CollapsibleContent>
+                  <CardContent className="space-y-3 text-sm pt-4">
+                    <InfoRow
+                      label="Browser"
+                      value={formatEnvironmentValue(
+                        report.metadata?.browser?.name,
+                        report.metadata?.browser?.version
+                      )}
+                    />
+                    <InfoRow
+                      label="OS"
+                      value={formatEnvironmentValue(
+                        report.metadata?.device?.os,
+                        report.metadata?.device?.osVersion
+                      )}
+                    />
+                    <InfoRow label="Device" value={report.metadata?.device?.type} />
+                    <InfoRow
+                      label="Viewport"
+                      value={
+                        report.metadata?.viewport?.width && report.metadata?.viewport?.height
+                          ? `${report.metadata.viewport.width}x${report.metadata.viewport.height}`
+                          : undefined
+                      }
+                    />
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
           )}
 
           {report.source === 'manual' && !hasPageInfo && !hasEnvironment && (
@@ -1205,7 +1328,10 @@ export function ReportDetail() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="outline-destructive" onClick={() => deleteMutation.mutate()}>
+            <AlertDialogAction
+              variant="outline-destructive"
+              onClick={() => deleteMutation.mutate()}
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1213,6 +1339,36 @@ export function ReportDetail() {
       </AlertDialog>
     </div>
   );
+}
+
+function usePersistedOpenState(
+  key: string,
+  defaultOpen: boolean
+): [boolean, (open: boolean) => void] {
+  const [open, setOpenState] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return defaultOpen;
+    try {
+      const stored = window.localStorage.getItem(key);
+      if (stored === null) return defaultOpen;
+      return stored === 'true';
+    } catch {
+      return defaultOpen;
+    }
+  });
+
+  const setOpen = useCallback(
+    (next: boolean) => {
+      setOpenState(next);
+      try {
+        window.localStorage.setItem(key, String(next));
+      } catch {
+        // localStorage may be unavailable (private mode, quota); state stays in memory.
+      }
+    },
+    [key]
+  );
+
+  return [open, setOpen];
 }
 
 function InfoRow({ label, value, isLink }: { label: string; value?: string; isLink?: boolean }) {

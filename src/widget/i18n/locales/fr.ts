@@ -55,6 +55,10 @@ const fr: WidgetCatalog = {
     "Conseil : utilisez l'outil d'annotation pour masquer les données sensibles avant d'envoyer.",
   'screenshot.capturing': 'Capture en cours...',
   'screenshot.capture': "Capturer l'écran",
+  'screenshot.quality.label': 'Réduire la qualité de capture',
+  'screenshot.quality.activeIndicator': 'Qualité de capture réduite',
+  'screenshot.quality.tooltip':
+    "Capturer à une densité de pixels de 1x. Utilisez cette option si votre capture d'écran est trop volumineuse pour être envoyée.",
   'screenshot.dropzone.title': 'Faites glisser vos fichiers ici',
   'screenshot.dropzone.subtitle': 'ou cliquez pour parcourir',
   'screenshot.addMore': "Ajouter d'autres",
@@ -62,6 +66,7 @@ const fr: WidgetCatalog = {
   'screenshot.badge.annotated': 'Annoté',
   'screenshot.badge.video': 'Vidéo',
   'screenshot.action.annotate': 'Annoter',
+  'screenshot.action.download': 'Télécharger',
   'screenshot.action.remove': 'Supprimer',
   'screenshot.helperText':
     'Formats acceptés : PNG, JPG, GIF, WebP (max. {imageSize} Mo) - MP4, WebM, MOV, AVI (max. {videoSize} Mo)',
@@ -71,6 +76,9 @@ const fr: WidgetCatalog = {
   'screenshot.error.unsupportedVideo': 'Format de vidéo non pris en charge : {type}',
   'screenshot.error.videoTooLarge': 'Vidéo trop volumineuse. Taille maximale : {size} Mo.',
   'screenshot.error.unsupportedFile': 'Type de fichier non pris en charge : {type}',
+  'screenshot.error.captureTooLarge': "La capture d'écran fait {size} Mo (max. {limit} Mo).",
+  'screenshot.error.captureTooLargeHint':
+    'Activez « Réduire la qualité de capture » ou redimensionnez la fenêtre du navigateur.',
 
   'toast.success.submit': 'Rapport de bug envoyé avec succès !',
   'toast.error.submit': "Échec de l'envoi du rapport",

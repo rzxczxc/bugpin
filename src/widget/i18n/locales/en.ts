@@ -53,6 +53,10 @@ const en = {
     'Tip: Use the annotation tool to hide any sensitive data before submitting.',
   'screenshot.capturing': 'Capturing...',
   'screenshot.capture': 'Capture Screenshot',
+  'screenshot.quality.label': 'Reduce capture quality',
+  'screenshot.quality.activeIndicator': 'Capture quality reduced',
+  'screenshot.quality.tooltip':
+    'Capture at 1x pixel density. Use this if your screenshot is too large to submit.',
   'screenshot.dropzone.title': 'Drag and drop files here',
   'screenshot.dropzone.subtitle': 'or click to browse',
   'screenshot.addMore': 'Add more',
@@ -60,6 +64,7 @@ const en = {
   'screenshot.badge.annotated': 'Annotated',
   'screenshot.badge.video': 'Video',
   'screenshot.action.annotate': 'Annotate',
+  'screenshot.action.download': 'Download',
   'screenshot.action.remove': 'Remove',
   'screenshot.helperText':
     'Supported: PNG, JPG, GIF, WebP (max {imageSize}MB) - MP4, WebM, MOV, AVI (max {videoSize}MB)',
@@ -69,6 +74,9 @@ const en = {
   'screenshot.error.unsupportedVideo': 'Unsupported video format: {type}',
   'screenshot.error.videoTooLarge': 'Video too large. Maximum size is {size}MB.',
   'screenshot.error.unsupportedFile': 'Unsupported file type: {type}',
+  'screenshot.error.captureTooLarge': 'Captured screenshot is {size}MB (max. {limit}MB).',
+  'screenshot.error.captureTooLargeHint':
+    'Enabling "Reduce capture quality" or resize the browser window.',
 
   'toast.success.submit': 'Bug report submitted successfully!',
   'toast.error.submit': 'Failed to submit report',

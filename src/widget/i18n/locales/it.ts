@@ -54,6 +54,10 @@ const it: WidgetCatalog = {
     'Suggerimento: usa lo strumento di annotazione per nascondere i dati sensibili prima di inviare.',
   'screenshot.capturing': 'Acquisizione in corso...',
   'screenshot.capture': 'Cattura screenshot',
+  'screenshot.quality.label': 'Riduci qualità di acquisizione',
+  'screenshot.quality.activeIndicator': 'Qualità di acquisizione ridotta',
+  'screenshot.quality.tooltip':
+    "Acquisisci con densità di pixel 1x. Usa questa opzione se lo screenshot è troppo grande per l'invio.",
   'screenshot.dropzone.title': 'Trascina i file qui',
   'screenshot.dropzone.subtitle': 'o clicca per sfogliare',
   'screenshot.addMore': 'Aggiungi altri',
@@ -61,6 +65,7 @@ const it: WidgetCatalog = {
   'screenshot.badge.annotated': 'Annotato',
   'screenshot.badge.video': 'Video',
   'screenshot.action.annotate': 'Annota',
+  'screenshot.action.download': 'Scarica',
   'screenshot.action.remove': 'Rimuovi',
   'screenshot.helperText':
     'Supportati: PNG, JPG, GIF, WebP (max {imageSize}MB) - MP4, WebM, MOV, AVI (max {videoSize}MB)',
@@ -70,6 +75,9 @@ const it: WidgetCatalog = {
   'screenshot.error.unsupportedVideo': 'Formato video non supportato: {type}',
   'screenshot.error.videoTooLarge': 'Video troppo grande. La dimensione massima è {size}MB.',
   'screenshot.error.unsupportedFile': 'Tipo di file non supportato: {type}',
+  'screenshot.error.captureTooLarge': 'Lo screenshot è di {size}MB (max. {limit}MB).',
+  'screenshot.error.captureTooLargeHint':
+    'Attiva "Riduci qualità di acquisizione" o ridimensiona la finestra del browser.',
 
   'toast.success.submit': 'Segnalazione inviata con successo!',
   'toast.error.submit': 'Invio della segnalazione non riuscito',

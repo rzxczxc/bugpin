@@ -3,7 +3,7 @@ import { IntegrationTypeCard } from '../../components/integrations/IntegrationTy
 import { render, screen, userEvent } from '../utils';
 import type { Integration } from '@shared/types';
 import type { IntegrationTypeDefinition } from '../../lib/integration-types';
-import { Github } from 'lucide-react';
+import { Github } from '../../components/icons/Github';
 
 const definition: IntegrationTypeDefinition = {
   type: 'github',

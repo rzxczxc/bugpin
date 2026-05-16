@@ -52,6 +52,9 @@ const zh: WidgetCatalog = {
   'screenshot.privacyTip': '提示：提交前请使用标注工具遮挡敏感信息。',
   'screenshot.capturing': '正在截图……',
   'screenshot.capture': '截取屏幕',
+  'screenshot.quality.label': '降低截图质量',
+  'screenshot.quality.activeIndicator': '截图质量已降低',
+  'screenshot.quality.tooltip': '以 1x 像素密度截图。如果截图太大无法提交，请使用此选项。',
   'screenshot.dropzone.title': '将文件拖放到此处',
   'screenshot.dropzone.subtitle': '或点击浏览',
   'screenshot.addMore': '添加更多',
@@ -59,6 +62,7 @@ const zh: WidgetCatalog = {
   'screenshot.badge.annotated': '已标注',
   'screenshot.badge.video': '视频',
   'screenshot.action.annotate': '标注',
+  'screenshot.action.download': '下载',
   'screenshot.action.remove': '移除',
   'screenshot.helperText':
     '支持格式：PNG、JPG、GIF、WebP（最大 {imageSize}MB） - MP4、WebM、MOV、AVI（最大 {videoSize}MB）',
@@ -68,6 +72,8 @@ const zh: WidgetCatalog = {
   'screenshot.error.unsupportedVideo': '不支持的视频格式：{type}',
   'screenshot.error.videoTooLarge': '视频过大，最大不超过 {size}MB。',
   'screenshot.error.unsupportedFile': '不支持的文件类型：{type}',
+  'screenshot.error.captureTooLarge': '截图为 {size}MB（上限 {limit}MB）。',
+  'screenshot.error.captureTooLargeHint': '请启用"降低截图质量"或调整浏览器窗口大小。',
 
   'toast.success.submit': '缺陷报告已成功提交！',
   'toast.error.submit': '报告提交失败',

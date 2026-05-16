@@ -53,6 +53,10 @@ const ja: WidgetCatalog = {
   'screenshot.privacyTip': 'ヒント：送信前に注釈ツールで機密情報を隠してください。',
   'screenshot.capturing': '撮影中...',
   'screenshot.capture': 'スクリーンショットを撮影',
+  'screenshot.quality.label': 'キャプチャ品質を下げる',
+  'screenshot.quality.activeIndicator': 'キャプチャ品質を低下中',
+  'screenshot.quality.tooltip':
+    '1倍のピクセル密度でキャプチャします。スクリーンショットが送信できないほど大きい場合に使用してください。',
   'screenshot.dropzone.title': 'ファイルをここにドラッグ＆ドロップ',
   'screenshot.dropzone.subtitle': 'またはクリックして選択',
   'screenshot.addMore': 'さらに追加',
@@ -60,6 +64,7 @@ const ja: WidgetCatalog = {
   'screenshot.badge.annotated': '注釈済み',
   'screenshot.badge.video': '動画',
   'screenshot.action.annotate': '注釈',
+  'screenshot.action.download': 'ダウンロード',
   'screenshot.action.remove': '削除',
   'screenshot.helperText':
     '対応形式：PNG、JPG、GIF、WebP（最大{imageSize}MB）／MP4、WebM、MOV、AVI（最大{videoSize}MB）',
@@ -69,6 +74,9 @@ const ja: WidgetCatalog = {
   'screenshot.error.unsupportedVideo': '対応していない動画形式です：{type}',
   'screenshot.error.videoTooLarge': '動画サイズが大きすぎます。最大{size}MBまでです。',
   'screenshot.error.unsupportedFile': '対応していないファイル形式です：{type}',
+  'screenshot.error.captureTooLarge': 'スクリーンショットは{size}MBです（上限: {limit}MB）。',
+  'screenshot.error.captureTooLargeHint':
+    '「キャプチャ品質を下げる」を有効にするか、ブラウザウィンドウのサイズを変更してください。',
 
   'toast.success.submit': 'バグレポートを送信しました！',
   'toast.error.submit': 'レポートの送信に失敗しました',

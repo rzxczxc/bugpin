@@ -8,7 +8,7 @@ import {
   AppWindow,
   Camera,
   Languages,
-  Settings as SettingsIcon,
+  SlidersHorizontal,
   Bell,
   UsersRound,
   Shield,
@@ -59,7 +59,7 @@ const widgetItems: NavItem[] = [
 ];
 
 const consoleItems: NavItem[] = [
-  { title: 'Settings', url: '/settings', icon: SettingsIcon },
+  { title: 'Settings', url: '/settings', icon: SlidersHorizontal },
   { title: 'Notifications', url: '/notifications', icon: Bell },
   { title: 'Users', url: '/users', icon: UsersRound },
   { title: 'Security', url: '/security', icon: Shield },

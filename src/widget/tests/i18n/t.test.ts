@@ -18,7 +18,7 @@ describe('widget i18n runtime', () => {
       setLocale('de');
       expect(t('tooltip.launcher')).toBe('Bug gefunden?');
       setLocale('fr');
-      expect(t('tooltip.launcher')).toBe('Tu as trouvé un bug ?');
+      expect(t('tooltip.launcher')).toBe('Vous avez trouvé un bug ?');
     });
 
     it('returns the key itself when no entry exists in either locale', () => {

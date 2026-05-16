@@ -12,19 +12,12 @@ import {
 import { Button } from '../../components/ui/button';
 import { Spinner } from '../../components/ui/spinner';
 import { ScreenshotSettingsForm } from '../../components/ScreenshotSettingsForm';
-import type { AppSettings } from '@shared/types';
-
-interface ScreenshotFormData {
-  useScreenCaptureAPI?: boolean;
-  maxScreenshotSizeMb?: number;
-  maxImageUploadSizeMb?: number;
-  maxVideoUploadSizeMb?: number;
-}
+import type { AppSettings, ScreenshotSettings } from '@shared/types';
 
 export function Screenshot() {
   const queryClient = useQueryClient();
-  const [formData, setFormData] = useState<ScreenshotFormData>({
-    maxScreenshotSizeMb: 5,
+  const [formData, setFormData] = useState<ScreenshotSettings>({
+    maxScreenshotSize: 10,
     maxImageUploadSizeMb: 10,
     maxVideoUploadSizeMb: 50,
     useScreenCaptureAPI: false,
@@ -41,7 +34,7 @@ export function Screenshot() {
   useEffect(() => {
     if (settings) {
       setFormData({
-        maxScreenshotSizeMb: settings.screenshot.maxScreenshotSize || 5,
+        maxScreenshotSize: settings.screenshot.maxScreenshotSize || 10,
         maxImageUploadSizeMb: settings.screenshot.maxImageUploadSizeMb || 10,
         maxVideoUploadSizeMb: settings.screenshot.maxVideoUploadSizeMb || 50,
         useScreenCaptureAPI: settings.screenshot.useScreenCaptureAPI || false,
@@ -67,7 +60,7 @@ export function Screenshot() {
     e.preventDefault();
     mutation.mutate({
       screenshot: {
-        maxScreenshotSize: formData.maxScreenshotSizeMb || 5,
+        maxScreenshotSize: formData.maxScreenshotSize || 10,
         maxImageUploadSizeMb: formData.maxImageUploadSizeMb || 10,
         maxVideoUploadSizeMb: formData.maxVideoUploadSizeMb || 50,
         useScreenCaptureAPI: formData.useScreenCaptureAPI || false,

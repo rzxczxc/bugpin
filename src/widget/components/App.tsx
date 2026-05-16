@@ -6,7 +6,7 @@ import { WidgetDialog, FormData } from './WidgetDialog.js';
 import { Toast, ToastType } from './ui';
 import { AnnotationCanvas } from '../annotate/AnnotationCanvas.js';
 import { CapturedMedia } from './ScreenshotManager.js';
-import { captureScreenshot } from '../capture/screenshot.js';
+import { captureScreenshot, dataUrlToBlob } from '../capture/screenshot.js';
 import { captureContext } from '../capture/context.js';
 import { submitReport } from '../api/submit.js';
 import { draftStorage } from '../storage/draft-storage.js';
@@ -58,6 +58,11 @@ export const App: FunctionComponent<AppProps> = ({ config, deps }) => {
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [showScreenCaptureConsent, setShowScreenCaptureConsent] = useState(false);
+  const [reduceScreenshotQuality, setReduceScreenshotQuality] = useState(false);
+  const [oversizedCapture, setOversizedCapture] = useState<{
+    sizeMb: number;
+    limitMb: number;
+  } | null>(null);
 
   // Load draft when widget opens
   useEffect(() => {
@@ -216,7 +221,27 @@ export const App: FunctionComponent<AppProps> = ({ config, deps }) => {
       const dataUrl = await captureScreenshotFn({
         method: config.captureMethod,
         useScreenCaptureAPI: config.useScreenCaptureAPI,
+        pixelRatioOverride: reduceScreenshotQuality ? 1 : undefined,
       });
+
+      // Reject oversized captures up-front instead of letting the server drop
+      // them silently on submit. Surface the failure via an inline banner in
+      // the screenshots tab so the user can lower the capture quality or
+      // resize the window and retry.
+      const blob = dataUrlToBlob(dataUrl);
+      if (blob.size > config.maxScreenshotSize) {
+        const sizeMb = Math.round((blob.size / (1024 * 1024)) * 10) / 10;
+        const limitMb = Math.round(config.maxScreenshotSize / (1024 * 1024));
+        setOversizedCapture({ sizeMb, limitMb });
+        setIsCapturing(false);
+        setActiveTab('media');
+        setStep('form');
+        return;
+      }
+
+      // Successful capture clears any previous oversize warning.
+      setOversizedCapture(null);
+
       const img = new Image();
 
       img.onload = () => {
@@ -267,7 +292,7 @@ export const App: FunctionComponent<AppProps> = ({ config, deps }) => {
         type: 'error',
       });
     }
-  }, [config, captureScreenshotFn, showScreenCaptureConsent]);
+  }, [config, captureScreenshotFn, showScreenCaptureConsent, reduceScreenshotQuality]);
 
   const handleConsentConfirm = useCallback(() => {
     handleCaptureScreenshot();
@@ -427,6 +452,10 @@ export const App: FunctionComponent<AppProps> = ({ config, deps }) => {
           showScreenCaptureConsent={showScreenCaptureConsent}
           onConsentConfirm={handleConsentConfirm}
           onConsentCancel={handleConsentCancel}
+          reduceScreenshotQuality={reduceScreenshotQuality}
+          onReduceScreenshotQualityChange={setReduceScreenshotQuality}
+          oversizedCapture={oversizedCapture}
+          onDismissOversizedCapture={() => setOversizedCapture(null)}
         />
       )}
 

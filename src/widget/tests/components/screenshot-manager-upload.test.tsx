@@ -73,6 +73,10 @@ describe('ScreenshotManager uploads', () => {
         onAnnotate={() => undefined}
         isCapturing={false}
         enableAnnotation={true}
+        reduceQuality={false}
+        onReduceQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
       />,
       container
     );
@@ -107,6 +111,10 @@ describe('ScreenshotManager uploads', () => {
         onAnnotate={() => undefined}
         isCapturing={false}
         enableAnnotation={true}
+        reduceQuality={false}
+        onReduceQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
       />,
       container
     );

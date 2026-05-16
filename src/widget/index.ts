@@ -79,6 +79,9 @@ async function fetchConfig(
           enableConsoleCapture: cfg.features?.consoleCapture ?? true,
           captureMethod: cfg.captureMethod,
           useScreenCaptureAPI: cfg.useScreenCaptureAPI,
+          maxScreenshotSize: cfg.maxScreenshotSizeMb
+            ? cfg.maxScreenshotSizeMb * 1024 * 1024
+            : undefined,
           maxImageUploadSize: cfg.maxImageUploadSizeMb
             ? cfg.maxImageUploadSizeMb * 1024 * 1024
             : undefined,

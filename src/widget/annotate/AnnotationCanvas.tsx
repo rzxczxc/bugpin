@@ -1,6 +1,23 @@
-import { FunctionComponent } from 'preact';
+import { FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef, useState, useCallback } from 'preact/hooks';
 import * as fabric from 'fabric';
+import {
+  MousePointer2,
+  Move,
+  Pencil,
+  Slash,
+  MoveUpRight,
+  Square,
+  Circle,
+  Type,
+  HatGlasses,
+  Undo2,
+  Redo2,
+  Trash2,
+  ZoomOut,
+  Maximize,
+  ZoomIn,
+} from 'lucide-preact';
 import { cn } from '../lib/utils';
 import { Button } from '../components/ui';
 import { useLocale } from '../hooks/use-locale.js';
@@ -995,20 +1012,20 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
     label,
   }: {
     tool: AnnotationTool;
-    icon: string;
+    icon: JSX.Element;
     label: string;
   }) => (
     <button
       class={cn(
-        'flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-gray-600 cursor-pointer transition-colors',
-        'hover:bg-gray-100 hover:text-gray-800',
+        'flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-muted-foreground cursor-pointer transition-colors',
+        'hover:bg-foreground/10 hover:text-foreground',
         '[&_svg]:w-4.5 [&_svg]:h-4.5',
         activeTool === tool && 'bg-primary/10 text-primary'
       )}
       onClick={() => setActiveTool(tool)}
       title={label}
     >
-      <span dangerouslySetInnerHTML={{ __html: icon }} />
+      {icon}
     </button>
   );
 
@@ -1020,47 +1037,23 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
           <ToolButton
             tool="select"
             label={t('annotation.toolbar.select')}
-            icon='<svg viewBox="0 0 24 24"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z" fill="currentColor"/></svg>'
+            icon={<MousePointer2 />}
           />
-          <ToolButton
-            tool="pan"
-            label={t('annotation.toolbar.pan')}
-            icon='<svg viewBox="0 0 24 24"><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z" fill="currentColor"/></svg>'
-          />
-          <ToolButton
-            tool="pen"
-            label={t('annotation.toolbar.pen')}
-            icon='<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 000-1.41l-2.34-2.34a.996.996 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/></svg>'
-          />
-          <ToolButton
-            tool="line"
-            label={t('annotation.toolbar.line')}
-            icon='<svg viewBox="0 0 24 24"><line x1="5" y1="19" x2="19" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
-          />
-          <ToolButton
-            tool="arrow"
-            label={t('annotation.toolbar.arrow')}
-            icon='<svg viewBox="0 0 24 24"><line x1="5" y1="19" x2="19" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19 5l-6 2 4 4 2-6z" fill="currentColor"/></svg>'
-          />
+          <ToolButton tool="pan" label={t('annotation.toolbar.pan')} icon={<Move />} />
+          <ToolButton tool="pen" label={t('annotation.toolbar.pen')} icon={<Pencil />} />
+          <ToolButton tool="line" label={t('annotation.toolbar.line')} icon={<Slash />} />
+          <ToolButton tool="arrow" label={t('annotation.toolbar.arrow')} icon={<MoveUpRight />} />
           <ToolButton
             tool="rectangle"
             label={t('annotation.toolbar.rectangle')}
-            icon='<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>'
+            icon={<Square />}
           />
-          <ToolButton
-            tool="circle"
-            label={t('annotation.toolbar.circle')}
-            icon='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/></svg>'
-          />
-          <ToolButton
-            tool="text"
-            label={t('annotation.toolbar.text')}
-            icon='<svg viewBox="0 0 24 24"><path d="M5 4v3h5.5v12h3V7H19V4H5z" fill="currentColor"/></svg>'
-          />
+          <ToolButton tool="circle" label={t('annotation.toolbar.circle')} icon={<Circle />} />
+          <ToolButton tool="text" label={t('annotation.toolbar.text')} icon={<Type />} />
           <ToolButton
             tool="pixelate"
             label={t('annotation.toolbar.pixelate')}
-            icon='<svg viewBox="0 0 24 24"><rect x="3" y="3" width="4" height="4" fill="currentColor"/><rect x="10" y="3" width="4" height="4" fill="currentColor"/><rect x="17" y="3" width="4" height="4" fill="currentColor"/><rect x="3" y="10" width="4" height="4" fill="currentColor"/><rect x="10" y="10" width="4" height="4" fill="currentColor"/><rect x="17" y="10" width="4" height="4" fill="currentColor"/><rect x="3" y="17" width="4" height="4" fill="currentColor"/><rect x="10" y="17" width="4" height="4" fill="currentColor"/><rect x="17" y="17" width="4" height="4" fill="currentColor"/></svg>'
+            icon={<HatGlasses />}
           />
         </div>
 
@@ -1071,14 +1064,20 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
           {COLORS.map((color) => (
             <button
               key={color}
-              class={cn(
-                'w-6 h-6 rounded-full border-2 border-solid cursor-pointer transition-transform hover:scale-110',
-                activeColor === color ? 'border-gray-800 scale-110' : 'border-transparent'
-              )}
-              style={{ backgroundColor: color }}
+              class="group flex w-6 h-6 items-center justify-center border-none bg-transparent p-0 cursor-pointer"
               onClick={() => setActiveColor(color)}
               title={color}
-            />
+            >
+              <span
+                class={cn(
+                  'block rounded-full transition-all',
+                  activeColor === color
+                    ? 'w-5 h-5 ring-2 ring-foreground ring-offset-1 ring-offset-muted'
+                    : 'w-6 h-6 group-hover:scale-110'
+                )}
+                style={{ backgroundColor: color }}
+              />
+            </button>
           ))}
         </div>
 
@@ -1091,13 +1090,13 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
               key={width}
               class={cn(
                 'flex items-center justify-center w-8 h-8 border-none rounded bg-transparent cursor-pointer transition-colors',
-                'hover:bg-gray-100',
+                'hover:bg-foreground/10',
                 strokeWidth === width && 'bg-primary/10'
               )}
               onClick={() => setStrokeWidth(width)}
               title={t('annotation.toolbar.strokeWidth', { width })}
             >
-              <span class="w-5 bg-gray-800 rounded-full" style={{ height: `${width}px` }} />
+              <span class="w-5 bg-foreground rounded-full" style={{ height: `${width}px` }} />
             </button>
           ))}
         </div>
@@ -1107,42 +1106,27 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
         {/* Undo/Redo */}
         <div class="flex items-center gap-1">
           <button
-            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-gray-600 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
+            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-muted-foreground cursor-pointer transition-colors hover:bg-foreground/10 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
             onClick={undo}
             disabled={!canUndo}
             title={t('annotation.toolbar.undo')}
           >
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"
-                fill="currentColor"
-              />
-            </svg>
+            <Undo2 />
           </button>
           <button
-            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-gray-600 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
+            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-muted-foreground cursor-pointer transition-colors hover:bg-foreground/10 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
             onClick={redo}
             disabled={!canRedo}
             title={t('annotation.toolbar.redo')}
           >
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"
-                fill="currentColor"
-              />
-            </svg>
+            <Redo2 />
           </button>
           <button
-            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-gray-600 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
+            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-muted-foreground cursor-pointer transition-colors hover:bg-foreground/10 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
             onClick={deleteSelected}
             title={t('annotation.toolbar.delete')}
           >
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                fill="currentColor"
-              />
-            </svg>
+            <Trash2 />
           </button>
         </div>
 
@@ -1151,49 +1135,34 @@ export const AnnotationCanvas: FunctionComponent<AnnotationCanvasProps> = ({
         {/* Zoom Controls */}
         <div class="flex items-center gap-1">
           <button
-            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-gray-600 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
+            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-muted-foreground cursor-pointer transition-colors hover:bg-foreground/10 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
             onClick={handleZoomOut}
             disabled={zoomLevel <= 0.5}
             title={t('annotation.toolbar.zoomOut')}
           >
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM7 9h5v1H7z"
-                fill="currentColor"
-              />
-            </svg>
+            <ZoomOut />
           </button>
           <button
-            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-gray-600 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
+            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-muted-foreground cursor-pointer transition-colors hover:bg-foreground/10 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
             onClick={handleZoomReset}
             title={t('annotation.toolbar.zoomReset', { percent: Math.round(zoomLevel * 100) })}
           >
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"
-                fill="currentColor"
-              />
-            </svg>
+            <Maximize />
           </button>
           <button
-            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-gray-600 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
+            class="flex items-center justify-center w-8 h-8 border-none rounded bg-transparent text-muted-foreground cursor-pointer transition-colors hover:bg-foreground/10 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:w-4.5 [&_svg]:h-4.5"
             onClick={handleZoomIn}
             disabled={zoomLevel >= 3}
             title={t('annotation.toolbar.zoomIn')}
           >
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zm.5-7H9v2H7v1h2v2h1v-2h2V9h-2z"
-                fill="currentColor"
-              />
-            </svg>
+            <ZoomIn />
           </button>
         </div>
       </div>
 
       {/* Canvas */}
       <div
-        class="min-h-[600px] min-w-[700px] max-h-[70vh] overflow-auto flex items-center justify-center p-4 bg-gray-800"
+        class="min-h-[600px] min-w-[700px] max-h-[70vh] overflow-auto flex items-center justify-center p-4 bg-muted"
         ref={canvasWrapperRef}
       >
         <canvas ref={canvasRef} />
