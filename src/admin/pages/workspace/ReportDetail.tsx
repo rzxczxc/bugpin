@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -90,13 +90,11 @@ export function ReportDetail() {
     'bugpin.report-detail.environment-open',
     true
   );
+  const [reporterMessagesOpen, setReporterMessagesOpen] = usePersistedOpenState(
+    'bugpin.report-detail.reporter-messages-open',
+    true
+  );
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({
-    status: '',
-    priority: '',
-    assignedTo: UNASSIGNED_VALUE,
-  });
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [viewingImage, setViewingImage] = useState<{ url: string; filename: string } | null>(null);
   const [composeMessage, setComposeMessage] = useState('');
@@ -104,6 +102,10 @@ export function ReportDetail() {
   const [resolveMessage, setResolveMessage] = useState('');
   const [resolveCcSender, setResolveCcSender] = useState(false);
   const [showResolveMessage, setShowResolveMessage] = useState(false);
+  const [justResolved, setJustResolved] = useState(false);
+  const [localStatus, setLocalStatus] = useState<string>('');
+  const [localPriority, setLocalPriority] = useState<string>('');
+  const [localAssignedTo, setLocalAssignedTo] = useState<string>(UNASSIGNED_VALUE);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['report', id],
@@ -185,7 +187,6 @@ export function ReportDetail() {
       queryClient.invalidateQueries({ queryKey: ['reports'] });
       queryClient.invalidateQueries({ queryKey: ['recent-reports'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-      setIsEditing(false);
       toast.success('Report updated successfully');
     },
     onError: (err: Error & { response?: { data?: { message?: string } } }) => {
@@ -208,6 +209,23 @@ export function ReportDetail() {
       toast.error(err.response?.data?.message || 'Failed to delete report');
     },
   });
+
+  const serverReport = data?.report as Report | undefined;
+  const serverStatus = serverReport?.status;
+  const serverPriority = serverReport?.priority;
+  const serverAssignedTo = serverReport?.assignedTo;
+
+  useEffect(() => {
+    if (serverStatus) setLocalStatus(serverStatus);
+  }, [serverStatus]);
+
+  useEffect(() => {
+    if (serverPriority) setLocalPriority(serverPriority);
+  }, [serverPriority]);
+
+  useEffect(() => {
+    setLocalAssignedTo(serverAssignedTo ?? UNASSIGNED_VALUE);
+  }, [serverAssignedTo]);
 
   if (isLoading) {
     return (
@@ -284,42 +302,69 @@ export function ReportDetail() {
     );
   })();
 
-  const handleSave = async () => {
-    const updates: { status?: string; priority?: string; assignedTo?: string | null } = {};
-    if (editData.status && editData.status !== report.status) updates.status = editData.status;
-    if (editData.priority && editData.priority !== report.priority)
-      updates.priority = editData.priority;
-    const nextAssignedTo = editData.assignedTo === UNASSIGNED_VALUE ? null : editData.assignedTo;
-    if ((report.assignedTo ?? null) !== nextAssignedTo) {
-      updates.assignedTo = nextAssignedTo;
-    }
-
-    if (Object.keys(updates).length > 0) {
-      const shouldSendResolveMessage =
-        updates.status === 'resolved' &&
-        report.reporterEmail &&
-        messagingEnabled &&
-        resolveMessage.trim();
-
-      updateMutation.mutate(updates, {
-        onSuccess: async () => {
-          if (shouldSendResolveMessage) {
-            try {
-              await sendMessageAsync({
-                message: resolveMessage.trim(),
-                ccSender: resolveCcSender,
-              });
-            } catch {
-              // Toast error is handled by the hook
-            }
-          }
-          setResolveMessage('');
-          setResolveCcSender(false);
-          setShowResolveMessage(false);
-        },
-      });
+  const handleStatusChange = (value: string) => {
+    if (value === report.status) return;
+    const previous = localStatus;
+    setLocalStatus(value);
+    if (
+      value === 'resolved' &&
+      previous !== 'resolved' &&
+      report.reporterEmail &&
+      messagingEnabled
+    ) {
+      setJustResolved(true);
     } else {
-      setIsEditing(false);
+      setJustResolved(false);
+      setShowResolveMessage(false);
+      setResolveMessage('');
+      setResolveCcSender(false);
+    }
+    updateMutation.mutate(
+      { status: value },
+      {
+        onError: () => setLocalStatus(previous),
+      }
+    );
+  };
+
+  const handlePriorityChange = (value: string) => {
+    if (value === report.priority) return;
+    const previous = localPriority;
+    setLocalPriority(value);
+    updateMutation.mutate(
+      { priority: value },
+      {
+        onError: () => setLocalPriority(previous),
+      }
+    );
+  };
+
+  const handleAssigneeChange = (value: string) => {
+    const nextAssignedTo = value === UNASSIGNED_VALUE ? null : value;
+    if ((report.assignedTo ?? null) === nextAssignedTo) return;
+    const previous = localAssignedTo;
+    setLocalAssignedTo(value);
+    updateMutation.mutate(
+      { assignedTo: nextAssignedTo },
+      {
+        onError: () => setLocalAssignedTo(previous),
+      }
+    );
+  };
+
+  const handleSendResolveMessage = async () => {
+    if (!resolveMessage.trim()) return;
+    try {
+      await sendMessageAsync({
+        message: resolveMessage.trim(),
+        ccSender: resolveCcSender,
+      });
+      setResolveMessage('');
+      setResolveCcSender(false);
+      setShowResolveMessage(false);
+      setJustResolved(false);
+    } catch {
+      // Toast error is handled by the hook
     }
   };
 
@@ -357,73 +402,45 @@ export function ReportDetail() {
           <h1 className="text-2xl font-bold">{report.title}</h1>
         </div>
         <div className="flex gap-2">
-          {canEdit && isEditing ? (
-            <>
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            </>
-          ) : (
-            <>
-              <ExportDiagnosticsMenu report={report} />
-              {canEdit && (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setEditData({
-                      status: report.status,
-                      priority: report.priority,
-                      assignedTo: report.assignedTo ?? UNASSIGNED_VALUE,
-                    });
-                    setIsEditing(true);
-                  }}
-                >
-                  Edit
+          <ExportDiagnosticsMenu report={report} />
+          {canEdit && isAdmin && activeIntegrations.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" disabled={forwardMutation.isPending}>
+                  {forwardMutation.isPending ? (
+                    <>
+                      <Spinner size="sm" className="mr-2" />
+                      Forwarding...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Forward
+                    </>
+                  )}
                 </Button>
-              )}
-              {canEdit && isAdmin && activeIntegrations.length > 0 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" disabled={forwardMutation.isPending}>
-                      {forwardMutation.isPending ? (
-                        <>
-                          <Spinner size="sm" className="mr-2" />
-                          Forwarding...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="h-4 w-4 mr-2" />
-                          Forward
-                        </>
-                      )}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {activeIntegrations.map((integration) => (
-                      <DropdownMenuItem
-                        key={integration.id}
-                        onClick={() => handleForward(integration.id, integration.name)}
-                      >
-                        {integration.type === 'github' && 'GitHub: '}
-                        {integration.name}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-              {canEdit && isAdmin && (
-                <Button
-                  variant="outline-destructive"
-                  onClick={() => setShowDeleteDialog(true)}
-                  disabled={deleteMutation.isPending}
-                >
-                  Delete
-                </Button>
-              )}
-            </>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {activeIntegrations.map((integration) => (
+                  <DropdownMenuItem
+                    key={integration.id}
+                    onClick={() => handleForward(integration.id, integration.name)}
+                  >
+                    {integration.type === 'github' && 'GitHub: '}
+                    {integration.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          {canEdit && isAdmin && (
+            <Button
+              variant="outline-destructive"
+              onClick={() => setShowDeleteDialog(true)}
+              disabled={deleteMutation.isPending}
+            >
+              Delete
+            </Button>
           )}
         </div>
       </div>
@@ -884,12 +901,9 @@ export function ReportDetail() {
                 <CardContent className="space-y-4 pt-4">
                   <div className="space-y-1">
                     <Label className="text-muted-foreground block">Status</Label>
-                    {isEditing ? (
+                    {canEdit ? (
                       <>
-                        <Select
-                          value={editData.status}
-                          onValueChange={(value) => setEditData({ ...editData, status: value })}
-                        >
+                        <Select value={localStatus} onValueChange={handleStatusChange}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -900,7 +914,8 @@ export function ReportDetail() {
                             <SelectItem value="closed">Closed</SelectItem>
                           </SelectContent>
                         </Select>
-                        {editData.status === 'resolved' &&
+                        {justResolved &&
+                          localStatus === 'resolved' &&
                           report.reporterEmail &&
                           messagingEnabled && (
                             <div className="mt-2 space-y-2">
@@ -914,8 +929,8 @@ export function ReportDetail() {
                               >
                                 <MessageSquare className="h-3 w-3" />
                                 {showResolveMessage
-                                  ? 'Remove message for reporter'
-                                  : 'Add a message for the reporter?'}
+                                  ? 'Cancel message'
+                                  : 'Send a message to the reporter?'}
                               </button>
                               {showResolveMessage && (
                                 <>
@@ -935,6 +950,23 @@ export function ReportDetail() {
                                     />
                                     Send me a copy
                                   </label>
+                                  <Button
+                                    size="sm"
+                                    onClick={handleSendResolveMessage}
+                                    disabled={!resolveMessage.trim() || isSending}
+                                  >
+                                    {isSending ? (
+                                      <>
+                                        <Spinner size="sm" className="mr-2" />
+                                        Sending...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Send className="h-4 w-4 mr-2" />
+                                        Send Message
+                                      </>
+                                    )}
+                                  </Button>
                                 </>
                               )}
                             </div>
@@ -948,11 +980,8 @@ export function ReportDetail() {
                   </div>
                   <div className="space-y-1">
                     <Label className="text-muted-foreground block">Priority</Label>
-                    {isEditing ? (
-                      <Select
-                        value={editData.priority}
-                        onValueChange={(value) => setEditData({ ...editData, priority: value })}
-                      >
+                    {canEdit ? (
+                      <Select value={localPriority} onValueChange={handlePriorityChange}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -972,18 +1001,35 @@ export function ReportDetail() {
                   </div>
                   <div className="space-y-1">
                     <Label className="text-muted-foreground block">Assignee</Label>
-                    {isEditing ? (
-                      <Select
-                        value={editData.assignedTo}
-                        onValueChange={(value) => setEditData({ ...editData, assignedTo: value })}
-                      >
+                    {canEdit ? (
+                      <Select value={localAssignedTo} onValueChange={handleAssigneeChange}>
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue>
+                            {(() => {
+                              if (localAssignedTo === UNASSIGNED_VALUE) {
+                                return <span className="text-muted-foreground">Unassigned</span>;
+                              }
+                              const selected =
+                                assignableUsers.find((u) => u.id === localAssignedTo) ??
+                                (localAssignedTo === report.assignedTo
+                                  ? report.assignee
+                                  : undefined);
+                              return selected ? (
+                                <AssigneeDisplay user={selected} size="sm" />
+                              ) : (
+                                <span className="text-muted-foreground">Unassigned</span>
+                              );
+                            })()}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value={UNASSIGNED_VALUE}>Unassigned</SelectItem>
                           {assignableUsers.map((assignee) => (
-                            <SelectItem key={assignee.id} value={assignee.id}>
+                            <SelectItem
+                              key={assignee.id}
+                              value={assignee.id}
+                              textValue={assignee.name}
+                            >
                               <AssigneeDisplay user={assignee} size="sm" />
                             </SelectItem>
                           ))}
@@ -994,31 +1040,33 @@ export function ReportDetail() {
                     )}
                   </div>
                   <Separator />
-                  <div className="space-y-1">
-                    <Label className="text-muted-foreground">Source</Label>
-                    <div>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-muted-foreground flex-shrink-0">Source</span>
                       <SourceBadge source={report.source} />
                     </div>
-                  </div>
-                  {manualChannel && (
-                    <div className="space-y-1">
-                      <Label className="text-muted-foreground">Channel</Label>
-                      <p className="text-sm capitalize">{manualChannel}</p>
+                    {manualChannel && (
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-muted-foreground flex-shrink-0">Channel</span>
+                        <span className="capitalize">{manualChannel}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-muted-foreground flex-shrink-0">Created</span>
+                      <span>{formatDateTime(report.createdAt)}</span>
                     </div>
-                  )}
-                  <div className="space-y-1">
-                    <Label className="text-muted-foreground">Created</Label>
-                    <p className="text-sm">{formatDateTime(report.createdAt)}</p>
+                    {(report.reporterEmail || report.reporterName) && (
+                      <div className="flex items-start justify-between gap-4">
+                        <span className="text-muted-foreground flex-shrink-0">Reporter</span>
+                        <div className="text-right min-w-0">
+                          {report.reporterName && <p className="truncate">{report.reporterName}</p>}
+                          {report.reporterEmail && (
+                            <p className="text-muted-foreground truncate">{report.reporterEmail}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  {(report.reporterEmail || report.reporterName) && (
-                    <div className="space-y-1">
-                      <Label className="text-muted-foreground">Reporter</Label>
-                      {report.reporterName && <p className="text-sm">{report.reporterName}</p>}
-                      {report.reporterEmail && (
-                        <p className="text-sm text-muted-foreground">{report.reporterEmail}</p>
-                      )}
-                    </div>
-                  )}
                 </CardContent>
               </CollapsibleContent>
             </Card>
@@ -1112,101 +1160,111 @@ export function ReportDetail() {
 
           {/* Reporter Messages */}
           {report.reporterEmail && messagingEnabled && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  Reporter Messages
-                  {reporterMessages.length > 0 && (
-                    <Badge variant="secondary" className="ml-1">
-                      {reporterMessages.length}
-                    </Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Compose new message (admin/editor only) */}
-                {canEdit && (
-                  <>
-                    <div className="space-y-2">
-                      <Textarea
-                        placeholder="Write a message to the reporter..."
-                        value={composeMessage}
-                        onChange={(e) => setComposeMessage(e.target.value)}
-                        rows={3}
-                        disabled={isSending}
-                      />
-                      <div className="flex items-center justify-between">
-                        <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
-                          <Checkbox
-                            checked={composeCcSender}
-                            onCheckedChange={(checked) => setComposeCcSender(checked === true)}
+            <Collapsible open={reporterMessagesOpen} onOpenChange={setReporterMessagesOpen}>
+              <Card>
+                <CardHeader className="p-0">
+                  <CollapsibleTrigger className="flex w-full items-center justify-between cursor-pointer hover:bg-muted/50 transition-colors p-6 text-left rounded-t-xl">
+                    <CardTitle className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      Reporter Messages
+                      {reporterMessages.length > 0 && (
+                        <Badge variant="secondary" className="ml-1">
+                          {reporterMessages.length}
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180 ml-2" />
+                  </CollapsibleTrigger>
+                </CardHeader>
+                <CollapsibleContent>
+                  <CardContent className="space-y-4 pt-4">
+                    {/* Compose new message (admin/editor only) */}
+                    {canEdit && (
+                      <>
+                        <div className="space-y-2">
+                          <Textarea
+                            placeholder="Write a message to the reporter..."
+                            value={composeMessage}
+                            onChange={(e) => setComposeMessage(e.target.value)}
+                            rows={3}
                             disabled={isSending}
                           />
-                          Send me a copy
-                        </label>
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            if (composeMessage.trim()) {
-                              sendMessage(
-                                { message: composeMessage.trim(), ccSender: composeCcSender },
-                                {
-                                  onSuccess: () => {
-                                    setComposeMessage('');
-                                    setComposeCcSender(false);
-                                  },
+                          <div className="flex items-center justify-between">
+                            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                              <Checkbox
+                                checked={composeCcSender}
+                                onCheckedChange={(checked) => setComposeCcSender(checked === true)}
+                                disabled={isSending}
+                              />
+                              Send me a copy
+                            </label>
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                if (composeMessage.trim()) {
+                                  sendMessage(
+                                    {
+                                      message: composeMessage.trim(),
+                                      ccSender: composeCcSender,
+                                    },
+                                    {
+                                      onSuccess: () => {
+                                        setComposeMessage('');
+                                        setComposeCcSender(false);
+                                      },
+                                    }
+                                  );
                                 }
-                              );
-                            }
-                          }}
-                          disabled={!composeMessage.trim() || isSending}
-                        >
-                          {isSending ? (
-                            <>
-                              <Spinner size="sm" className="mr-2" />
-                              Sending...
-                            </>
-                          ) : (
-                            <>
-                              <Send className="h-4 w-4 mr-2" />
-                              Send Message
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-
-                    <Separator />
-                  </>
-                )}
-
-                {/* Message history */}
-                {messagesLoading ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Spinner size="sm" className="text-muted-foreground" />
-                  </div>
-                ) : reporterMessages.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No messages sent yet. Send a message to communicate with the reporter.
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    {reporterMessages.map((msg) => (
-                      <div key={msg.id} className="rounded-lg border bg-muted/30 p-3 space-y-1">
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span className="font-medium">{msg.userName ?? 'System'}</span>
-                          <span title={formatDateTime(msg.sentAt)}>
-                            {formatRelativeTime(new Date(msg.sentAt))}
-                          </span>
+                              }}
+                              disabled={!composeMessage.trim() || isSending}
+                            >
+                              {isSending ? (
+                                <>
+                                  <Spinner size="sm" className="mr-2" />
+                                  Sending...
+                                </>
+                              ) : (
+                                <>
+                                  <Send className="h-4 w-4 mr-2" />
+                                  Send Message
+                                </>
+                              )}
+                            </Button>
+                          </div>
                         </div>
-                        <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+
+                        <Separator />
+                      </>
+                    )}
+
+                    {/* Message history */}
+                    {messagesLoading ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Spinner size="sm" className="text-muted-foreground" />
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                    ) : reporterMessages.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No messages sent yet. Send a message to communicate with the reporter.
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {reporterMessages.map((msg) => (
+                          <div key={msg.id} className="rounded-lg border bg-muted/30 p-3 space-y-1">
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <span className="font-medium">{msg.userName ?? 'System'}</span>
+                              <span title={formatDateTime(msg.sentAt)}>
+                                {formatRelativeTime(new Date(msg.sentAt))}
+                              </span>
+                            </div>
+                            <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
           )}
 
           {/* Forwarded To */}
