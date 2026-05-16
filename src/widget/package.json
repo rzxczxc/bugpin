@@ -1,7 +1,8 @@
 {
   "name": "@arantic/bugpin-widget",
-  "version": "1.1.0-dev",
   "description": "Embeddable visual bug reporting widget - Capture screenshots, annotate issues, and submit bug reports",
+  "version": "1.1.0",
+  "license": "MIT",
   "type": "module",
   "main": "dist/widget.cjs.js",
   "module": "dist/widget.esm.js",
@@ -28,7 +29,6 @@
     "self-hosted"
   ],
   "author": "Arantic Digital",
-  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/aranticlabs/bugpin.git",
