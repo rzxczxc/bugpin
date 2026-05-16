@@ -34,13 +34,13 @@ src/
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|------------|
-| Server | Bun runtime, Hono framework |
-| Database | SQLite (single file) |
+| Component     | Technology                     |
+| ------------- | ------------------------------ |
+| Server        | Bun runtime, Hono framework    |
+| Database      | SQLite (single file)           |
 | Admin Console | React 19, Vite, TanStack Query |
-| Widget | Preact, Shadow DOM |
-| Auth | Session-based, bcrypt |
+| Widget        | Preact, Shadow DOM             |
+| Auth          | Session-based, bcrypt          |
 
 ## Data Flow
 
@@ -62,36 +62,36 @@ Client Request
 
 ### Server (`src/server/`)
 
-| Directory | Purpose |
-|-----------|---------|
-| `routes/` | HTTP request handlers. Thin layer that delegates to services. |
-| `services/` | Business logic. Returns `Result<T>` types. |
-| `database/repositories/` | Data access. SQLite queries only. |
-| `database/migrations/` | SQL schema migrations. |
-| `storage/` | File system operations (uploads). |
-| `middleware/` | Request processing (auth, validation). |
-| `utils/` | Shared utilities (Result, ID generation). |
+| Directory                | Purpose                                                       |
+| ------------------------ | ------------------------------------------------------------- |
+| `routes/`                | HTTP request handlers. Thin layer that delegates to services. |
+| `services/`              | Business logic. Returns `Result<T>` types.                    |
+| `database/repositories/` | Data access. SQLite queries only.                             |
+| `database/migrations/`   | SQL schema migrations.                                        |
+| `storage/`               | File system operations (uploads).                             |
+| `middleware/`            | Request processing (auth, validation).                        |
+| `utils/`                 | Shared utilities (Result, ID generation).                     |
 
 ### Admin (`src/admin/`)
 
-| Directory | Purpose |
-|-----------|---------|
-| `pages/` | Route-level page components. |
-| `components/` | Reusable UI components. |
-| `hooks/` | Custom React hooks (useAuth, useReports). |
-| `api/` | API client functions. |
+| Directory     | Purpose                                   |
+| ------------- | ----------------------------------------- |
+| `pages/`      | Route-level page components.              |
+| `components/` | Reusable UI components.                   |
+| `hooks/`      | Custom React hooks (useAuth, useReports). |
+| `api/`        | API client functions.                     |
 
 ### Widget (`src/widget/`)
 
-| Directory | Purpose |
-|-----------|---------|
+| Directory     | Purpose                          |
+| ------------- | -------------------------------- |
 | `components/` | Widget UI (button, modal, form). |
-| `utils/` | Screenshot capture, annotations. |
-| `storage/` | IndexedDB for offline queue. |
+| `utils/`      | Screenshot capture, annotations. |
+| `storage/`    | IndexedDB for offline queue.     |
 
 ## Widget Constraints
 
-- Bundle size: <150KB gzipped
+- Bundle size: ≤175KB gzipped (IIFE bundle, the one customers embed)
 - No external runtime dependencies
 - Shadow DOM for CSS isolation
 - Offline-first with IndexedDB queue

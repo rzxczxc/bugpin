@@ -13,6 +13,13 @@ import type { LauncherTextBundle, ReportMetadata } from '@shared/types';
 
 const widget = new Hono();
 
+const MAX_DISPLAY_LENGTH = 128;
+const CONTROL_CHARS_PATTERN = /[\x00-\x1F\x7F]/g;
+
+function sanitizeForDisplay(value: string): string {
+  return value.replace(CONTROL_CHARS_PATTERN, '').slice(0, MAX_DISPLAY_LENGTH);
+}
+
 // Validation Schemas
 
 const submitReportSchema = z.object({
@@ -215,7 +222,7 @@ widget.post('/submit', dynamicRateLimiter({ keyGenerator: apiKeyGenerator }), as
         {
           success: false,
           error: 'UNSUPPORTED_MEDIA_TYPE',
-          message: `Unsupported media type "${file.type}" for "${file.name}".`,
+          message: `Unsupported media type "${sanitizeForDisplay(file.type)}" for "${sanitizeForDisplay(file.name)}".`,
           details: { filename: file.name, mimeType: file.type },
         },
         415
@@ -237,7 +244,7 @@ widget.post('/submit', dynamicRateLimiter({ keyGenerator: apiKeyGenerator }), as
         {
           success: false,
           error: 'FILE_TOO_LARGE',
-          message: `${isVideo ? 'Video' : 'Image'} "${file.name}" is ${sizeMb}MB; maximum is ${limitMb}MB.`,
+          message: `${isVideo ? 'Video' : 'Image'} "${sanitizeForDisplay(file.name)}" is ${sizeMb}MB; maximum is ${limitMb}MB.`,
           details: {
             filename: file.name,
             size: file.size,
@@ -262,7 +269,7 @@ widget.post('/submit', dynamicRateLimiter({ keyGenerator: apiKeyGenerator }), as
         {
           success: false,
           error: 'FILE_READ_ERROR',
-          message: `Failed to read uploaded file "${file.name}"`,
+          message: `Failed to read uploaded file "${sanitizeForDisplay(file.name)}"`,
           details: { filename: file.name },
         },
         400

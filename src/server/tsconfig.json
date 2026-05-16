@@ -25,9 +25,8 @@
     "outDir": "../../dist/server",
     "rootDir": "..",
     "types": ["bun-types"],
-    "baseUrl": "..",
     "paths": {
-      "@shared/*": ["shared/*"]
+      "@shared/*": ["../shared/*"]
     }
   },
   "include": ["./**/*.ts", "../shared/**/*.ts"],
