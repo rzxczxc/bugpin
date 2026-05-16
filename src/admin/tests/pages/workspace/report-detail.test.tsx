@@ -17,7 +17,7 @@ vi.mock('sonner', () => ({
 import { toast } from 'sonner';
 
 describe('ReportDetail', () => {
-  it('renders report details and updates status/priority', async () => {
+  it('auto-saves status and priority changes inline', async () => {
     const user = userEvent.setup();
     renderWithProviders(
       <Routes>
@@ -28,24 +28,26 @@ describe('ReportDetail', () => {
 
     expect(await screen.findByText('Button not working')).toBeInTheDocument();
     expect(screen.getByText('Editor User')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Edit' }));
     const [statusSelect, prioritySelect] = screen.getAllByRole('combobox');
 
     await user.click(statusSelect);
     await user.click(await screen.findByText('Resolved'));
 
-    await user.click(prioritySelect);
-    await user.click(await screen.findByText('Low'));
-
-    await user.click(screen.getByRole('button', { name: 'Save' }));
-
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith('Report updated successfully');
     });
+
+    await user.click(prioritySelect);
+    await user.click(await screen.findByText('Low'));
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledTimes(2);
+    });
   });
 
-  it('updates the assignee', async () => {
+  it('auto-saves assignee changes inline', async () => {
     const user = userEvent.setup();
     renderWithProviders(
       <Routes>
@@ -56,11 +58,9 @@ describe('ReportDetail', () => {
 
     expect(await screen.findByText('Button not working')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Edit' }));
     const assigneeSelect = screen.getAllByRole('combobox')[2];
     await user.click(assigneeSelect);
     await user.click(await screen.findByText('Admin User'));
-    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith('Report updated successfully');
