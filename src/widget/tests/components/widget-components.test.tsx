@@ -22,7 +22,7 @@ const baseConfig: WidgetConfig = {
   apiKey: 'proj_key',
   serverUrl: 'https://example.com',
   position: 'bottom-right',
-  buttonText: 'Report issue',
+  buttonText: { project: { en: 'Report issue' }, global: null, builtin: null },
   buttonShape: 'round',
   buttonIcon: 'bug',
   buttonIconSize: 18,
@@ -54,7 +54,7 @@ const baseConfig: WidgetConfig = {
   dialogDarkForegroundColor: '#fafafa',
   enableHoverScaleEffect: true,
   tooltipEnabled: false,
-  tooltipText: null,
+  tooltipText: { project: undefined, global: null, builtin: null },
   enableScreenshot: true,
   enableAnnotation: true,
   enableConsoleCapture: true,
@@ -85,7 +85,7 @@ describe('widget components', () => {
     const html = renderToString(
       <WidgetLauncherButton
         position="bottom-right"
-        buttonText="Report"
+        buttonText={{ project: { en: 'Report' }, global: null, builtin: null }}
         buttonShape="round"
         buttonIcon="bug"
         buttonIconSize={18}
@@ -101,9 +101,9 @@ describe('widget components', () => {
         darkTextHoverColor="#ffffff"
         enableHoverScaleEffect={true}
         tooltipEnabled={false}
-        tooltipText={null}
+        tooltipText={{ project: undefined, global: null, builtin: null }}
         onClick={() => undefined}
-      />,
+      />
     );
     expect(html).toContain('Report');
   });
@@ -112,7 +112,7 @@ describe('widget components', () => {
     const html = renderToString(
       <WidgetLauncherButton
         position="bottom-right"
-        buttonText={null}
+        buttonText={{ project: null, global: null, builtin: null }}
         buttonShape="round"
         buttonIcon={null}
         buttonIconSize={18}
@@ -128,9 +128,9 @@ describe('widget components', () => {
         darkTextHoverColor="#ffffff"
         enableHoverScaleEffect={false}
         tooltipEnabled={false}
-        tooltipText={null}
+        tooltipText={{ project: undefined, global: null, builtin: null }}
         onClick={() => undefined}
-      />,
+      />
     );
     expect(html).toContain('aria-label="Report Bug"');
   });
@@ -145,7 +145,11 @@ describe('widget components', () => {
         onAnnotate={() => undefined}
         isCapturing={false}
         enableAnnotation={true}
-      />,
+        reduceQuality={false}
+        onReduceQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
+      />
     );
     expect(html).toContain('Drag and drop files here');
   });
@@ -160,7 +164,11 @@ describe('widget components', () => {
         onAnnotate={() => undefined}
         isCapturing={false}
         enableAnnotation={true}
-      />,
+        reduceQuality={false}
+        onReduceQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
+      />
     );
     expect(html).toContain('Add more');
   });
@@ -180,7 +188,11 @@ describe('widget components', () => {
         onAnnotate={() => undefined}
         isCapturing={false}
         enableAnnotation={false}
-      />,
+        reduceQuality={false}
+        onReduceQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
+      />
     );
     expect(html).toContain('Video');
     expect(html).not.toContain('title="Annotate"');
@@ -212,7 +224,11 @@ describe('widget components', () => {
         showScreenCaptureConsent={false}
         onConsentConfirm={() => undefined}
         onConsentCancel={() => undefined}
-      />,
+        reduceScreenshotQuality={false}
+        onReduceScreenshotQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
+      />
     );
     expect(html).toContain('Report a Bug');
     expect(html).toContain('Submit Report');
@@ -244,7 +260,11 @@ describe('widget components', () => {
         showScreenCaptureConsent={false}
         onConsentConfirm={() => undefined}
         onConsentCancel={() => undefined}
-      />,
+        reduceScreenshotQuality={false}
+        onReduceScreenshotQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
+      />
     );
     expect(html).toContain('Screenshots (1)');
     expect(html).toContain('Capture Screenshot');
@@ -276,7 +296,11 @@ describe('widget components', () => {
         showScreenCaptureConsent={false}
         onConsentConfirm={() => undefined}
         onConsentCancel={() => undefined}
-      />,
+        reduceScreenshotQuality={false}
+        onReduceScreenshotQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
+      />
     );
     expect(html).toContain('animate-[spin_0.8s_linear_infinite]');
   });
@@ -291,7 +315,11 @@ describe('widget components', () => {
         onAnnotate={() => undefined}
         isCapturing={true}
         enableAnnotation={true}
-      />,
+        reduceQuality={false}
+        onReduceQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
+      />
     );
     expect(html).toContain('Capturing...');
   });

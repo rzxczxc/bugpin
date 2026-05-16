@@ -40,20 +40,24 @@ Located in `src/server/utils/result.ts`:
 import { Result } from '../utils/result';
 
 // Creating results
-return Result.ok(report);                    // Success
-return Result.fail('Report not found');      // Failure with message
+return Result.ok(report); // Success
+return Result.fail('Report not found'); // Failure with message
 return Result.fail('Not found', 'NOT_FOUND'); // Failure with error code
 
 // Checking results
-if (Result.isOk(result)) { /* use result.value */ }
-if (Result.isFail(result)) { /* use result.error */ }
+if (Result.isOk(result)) {
+  /* use result.value */
+}
+if (Result.isFail(result)) {
+  /* use result.error */
+}
 
 // Utilities
-const value = Result.unwrap(result);         // Throws if failed
+const value = Result.unwrap(result); // Throws if failed
 const value = Result.unwrapOr(result, defaultValue);
-const mapped = Result.map(result, fn);       // Transform value
-const chained = Result.flatMap(result, fn);  // Chain operations
-const wrapped = await Result.tryAsync(fn);   // Wrap async, catch errors
+const mapped = Result.map(result, fn); // Transform value
+const chained = Result.flatMap(result, fn); // Chain operations
+const wrapped = await Result.tryAsync(fn); // Wrap async, catch errors
 ```
 
 ### Type Guards
@@ -66,11 +70,16 @@ function isValidReport(data: unknown): data is Report {
 // Exhaustive switch pattern
 function handleStatus(status: ReportStatus): void {
   switch (status) {
-    case 'open': break;
-    case 'in_progress': break;
-    case 'resolved': break;
-    case 'closed': break;
-    default: const _exhaustive: never = status;
+    case 'open':
+      break;
+    case 'in_progress':
+      break;
+    case 'resolved':
+      break;
+    case 'closed':
+      break;
+    default:
+      const _exhaustive: never = status;
   }
 }
 ```
@@ -143,8 +152,12 @@ export const reportsRepo: IReportsRepository = {
     return row ?? null;
   },
   async update(id: string, updates: Partial<Report>): Promise<Report | null> {
-    getDb().run('UPDATE reports SET title = ?, status = ?, updated_at = ? WHERE id = ?',
-      [updates.title, updates.status, updates.updatedAt, id]);
+    getDb().run('UPDATE reports SET title = ?, status = ?, updated_at = ? WHERE id = ?', [
+      updates.title,
+      updates.status,
+      updates.updatedAt,
+      id,
+    ]);
     return this.findById(id);
   },
 };
@@ -155,6 +168,7 @@ export const reportsRepo: IReportsRepository = {
 ### Single Responsibility (SRP)
 
 Each class/module has ONE responsibility:
+
 - `ReportService` - report business logic only
 - `ReportsRepository` - report persistence only
 - `WebhookService` - webhook dispatch only
@@ -162,6 +176,7 @@ Each class/module has ONE responsibility:
 ### Open/Closed (OCP)
 
 Extend through new handlers, don't modify existing:
+
 - `CreateReportHandler` for single reports
 - `BulkCreateReportsHandler` for batch creation
 - `ForwardReportHandler` for forwarding
@@ -184,18 +199,18 @@ class ReportService {
 
 ## Naming Conventions
 
-| Context | Convention | Example |
-|---------|------------|---------|
-| Files (backend) | kebab-case | `reports.service.ts`, `auth.middleware.ts` |
-| Files (components) | PascalCase | `ReportList.tsx`, `Dashboard.tsx` |
-| Files (hooks) | camelCase | `useReports.ts`, `useAuth.ts` |
-| Classes/Interfaces | PascalCase | `ReportService`, `IReportsRepository` |
-| Functions/Variables | camelCase | `getReports()`, `isLoading` |
-| Constants | UPPER_SNAKE_CASE | `MAX_FILE_SIZE`, `SESSION_MAX_AGE` |
-| Database tables/columns | snake_case | `reports`, `project_id`, `created_at` |
-| API routes | kebab-case, plural | `/api/reports`, `/api/projects` |
-| JSON fields | snake_case | `{ "project_id": "...", "created_at": "..." }` |
-| CSS classes | kebab-case | `report-list`, `login-form` |
+| Context                 | Convention         | Example                                        |
+| ----------------------- | ------------------ | ---------------------------------------------- |
+| Files (backend)         | kebab-case         | `reports.service.ts`, `auth.middleware.ts`     |
+| Files (components)      | PascalCase         | `ReportList.tsx`, `Dashboard.tsx`              |
+| Files (hooks)           | camelCase          | `useReports.ts`, `useAuth.ts`                  |
+| Classes/Interfaces      | PascalCase         | `ReportService`, `IReportsRepository`          |
+| Functions/Variables     | camelCase          | `getReports()`, `isLoading`                    |
+| Constants               | UPPER_SNAKE_CASE   | `MAX_FILE_SIZE`, `SESSION_MAX_AGE`             |
+| Database tables/columns | snake_case         | `reports`, `project_id`, `created_at`          |
+| API routes              | kebab-case, plural | `/api/reports`, `/api/projects`                |
+| JSON fields             | snake_case         | `{ "project_id": "...", "created_at": "..." }` |
+| CSS classes             | kebab-case         | `report-list`, `login-form`                    |
 
 ## Import Order
 
@@ -211,14 +226,14 @@ class ReportService {
 // ✅ Correct
 import { useState } from 'react';
 
-export function MyComponent() { }
+export function MyComponent() {}
 ```
 
 **Comments**: Minimal, no decorative separators (`// ======`). Method JSDoc allowed for complex functions only.
 
 ## Widget Constraints
 
-- Bundle size: <50KB gzipped
+- Bundle size: ≤175KB gzipped (IIFE; ESM build may be larger)
 - No external runtime dependencies (Preact is bundled)
 - Must work in Shadow DOM (no global CSS leakage)
 - Offline-first with IndexedDB queue
@@ -226,13 +241,13 @@ export function MyComponent() { }
 
 ## Testing
 
-| Type | Target | Approach |
-|------|--------|----------|
-| Unit | Services | Mock all dependencies |
-| Unit | Utils | 100% coverage for Result, ID generation |
-| Integration | Repositories | Real SQLite database |
-| Integration | API | Full request/response with test DB |
-| E2E | Widget/Admin | User flow tests |
+| Type        | Target       | Approach                                |
+| ----------- | ------------ | --------------------------------------- |
+| Unit        | Services     | Mock all dependencies                   |
+| Unit        | Utils        | 100% coverage for Result, ID generation |
+| Integration | Repositories | Real SQLite database                    |
+| Integration | API          | Full request/response with test DB      |
+| E2E         | Widget/Admin | User flow tests                         |
 
 ### Mocking with Bun
 

@@ -15,7 +15,7 @@ describe('AppSidebar', () => {
         <SidebarProvider defaultOpen={true}>
           <AppSidebar />
         </SidebarProvider>
-      </BrandingProvider>,
+      </BrandingProvider>
     );
 
     expect(await screen.findByText('Admin User')).toBeInTheDocument();
@@ -32,7 +32,7 @@ describe('AppSidebar', () => {
     expect(await screen.findByText('Profile Settings')).toBeInTheDocument();
 
     await user.click(userButton as HTMLButtonElement);
-    await user.click(screen.getByText('Notifications'));
+    await user.click(await screen.findByRole('menuitem', { name: /notifications/i }));
     expect(await screen.findByText('Notification Preferences')).toBeInTheDocument();
 
     await waitFor(() => {
@@ -48,7 +48,7 @@ describe('AppSidebar', () => {
           authenticated: true,
           user: mockUsers.viewer,
         });
-      }),
+      })
     );
 
     renderWithProviders(
@@ -56,7 +56,7 @@ describe('AppSidebar', () => {
         <SidebarProvider defaultOpen={true}>
           <AppSidebar />
         </SidebarProvider>
-      </BrandingProvider>,
+      </BrandingProvider>
     );
 
     expect(await screen.findByText('Viewer User')).toBeInTheDocument();

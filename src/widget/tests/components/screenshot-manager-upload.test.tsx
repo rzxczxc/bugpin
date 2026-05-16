@@ -73,8 +73,12 @@ describe('ScreenshotManager uploads', () => {
         onAnnotate={() => undefined}
         isCapturing={false}
         enableAnnotation={true}
+        reduceQuality={false}
+        onReduceQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
       />,
-      container,
+      container
     );
 
     const input = container.querySelector('input[type="file"]') as HTMLInputElement | null;
@@ -107,8 +111,12 @@ describe('ScreenshotManager uploads', () => {
         onAnnotate={() => undefined}
         isCapturing={false}
         enableAnnotation={true}
+        reduceQuality={false}
+        onReduceQualityChange={() => undefined}
+        oversizedCapture={null}
+        onDismissOversizedCapture={() => undefined}
       />,
-      container,
+      container
     );
 
     const input = container.querySelector('input[type="file"]') as HTMLInputElement | null;

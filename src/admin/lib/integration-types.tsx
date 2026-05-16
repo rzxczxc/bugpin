@@ -1,4 +1,4 @@
-import { Github } from 'lucide-react';
+import { Github } from '../components/icons/Github';
 import { Integration, IntegrationType, GitHubIntegrationConfig } from '@shared/types';
 import { IntegrationDialog } from '../components/IntegrationDialog';
 

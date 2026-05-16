@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { settingsRepo } from '../../../src/server/database/repositories/settings.repo';
+import { config } from '../../../src/server/config';
 
 const CACHE_KEY = 'update_check_cache';
 const SETTING_KEY = 'update_check_enabled';
@@ -332,12 +333,18 @@ describe('updateCheckService.getStatus', () => {
   it('reports updateAvailable when latest is newer than current', async () => {
     fetchImpl = async () => jsonResponse(makeReleasePayload({ tag_name: 'v999.0.0' }));
 
-    const service = await loadService();
-    const result = await service.getStatus();
+    const originalVersion = config.version;
+    Object.assign(config, { version: '1.0.0' });
+    try {
+      const service = await loadService();
+      const result = await service.getStatus();
 
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.value.updateAvailable).toBe(true);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.value.updateAvailable).toBe(true);
+      }
+    } finally {
+      Object.assign(config, { version: originalVersion });
     }
   });
 });

@@ -1,8 +1,11 @@
 import { FunctionComponent } from 'preact';
 import { useState, useCallback } from 'preact/hooks';
+import { FileText, Image, X } from 'lucide-preact';
 import { ScreenshotManager, CapturedMedia } from './ScreenshotManager.js';
 import { Button, Input, Textarea, Select, Label, Tabs } from './ui';
 import { ScreenCaptureConsentDialog } from './ScreenCaptureConsentDialog.js';
+import { useLocale } from '../hooks/use-locale.js';
+import { t } from '../i18n/index.js';
 
 export interface FormData {
   title: string;
@@ -33,34 +36,16 @@ interface WidgetDialogProps {
   onConsentCancel: () => void;
   maxImageSize?: number;
   maxVideoSize?: number;
+  reduceScreenshotQuality: boolean;
+  onReduceScreenshotQualityChange: (value: boolean) => void;
+  oversizedCapture: { sizeMb: number; limitMb: number } | null;
+  onDismissOversizedCapture: () => void;
 }
 
-const TABS = [
-  {
-    id: 'details',
-    label: 'Details',
-    icon: (
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path
-          d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
-          fill="currentColor"
-        />
-      </svg>
-    ),
-  },
-  {
-    id: 'media',
-    label: 'Screenshots',
-    icon: (
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path
-          d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
-          fill="currentColor"
-        />
-      </svg>
-    ),
-  },
-];
+const TAB_ICONS = {
+  details: <FileText />,
+  media: <Image />,
+};
 
 export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
   onClose,
@@ -82,7 +67,12 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
   onConsentCancel,
   maxImageSize,
   maxVideoSize,
+  reduceScreenshotQuality,
+  onReduceScreenshotQualityChange,
+  oversizedCapture,
+  onDismissOversizedCapture,
 }) => {
+  useLocale();
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
 
   const handleInputChange = useCallback(
@@ -92,20 +82,20 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
         setErrors((prev) => ({ ...prev, [field]: undefined }));
       }
     },
-    [formData, onFormDataChange, errors],
+    [formData, onFormDataChange, errors]
   );
 
   const validate = useCallback((): boolean => {
     const newErrors: Partial<Record<keyof FormData, string>> = {};
 
     if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
+      newErrors.title = t('validation.title.required');
     } else if (formData.title.trim().length < 4) {
-      newErrors.title = 'Title must be at least 4 characters';
+      newErrors.title = t('validation.title.minLength');
     }
 
     if (formData.reporterEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.reporterEmail)) {
-      newErrors.reporterEmail = 'Invalid email address';
+      newErrors.reporterEmail = t('validation.email.invalid');
     }
 
     setErrors(newErrors);
@@ -123,31 +113,35 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
 
       onSubmit(formData, media);
     },
-    [formData, media, validate, onSubmit, onActiveTabChange],
+    [formData, media, validate, onSubmit, onActiveTabChange]
   );
 
   const mediaCount = media.length;
+  const tabs = [
+    { id: 'details', label: t('dialog.tabs.details'), icon: TAB_ICONS.details },
+    {
+      id: 'media',
+      label:
+        mediaCount > 0
+          ? t('dialog.tabs.mediaWithCount', { count: mediaCount })
+          : t('dialog.tabs.media'),
+      icon: TAB_ICONS.media,
+    },
+  ];
 
   return (
     <div class="fixed inset-0 z-[2147483646] bg-black/50 flex items-center justify-center p-5 animate-[fadeIn_0.2s_ease-out]">
       <div
-        class="relative w-full max-w-3xl max-h-[90vh] bg-background border border-solid border-border rounded shadow-lg overflow-hidden flex flex-col animate-[slideUp_0.2s_ease-out]"
+        class="relative w-full max-w-3xl min-h-[770px] max-h-[calc(100vh-40px)] bg-background border border-solid border-border rounded shadow-lg overflow-hidden flex flex-col animate-[slideUp_0.2s_ease-out]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="bugpin-title"
       >
         {/* Header */}
         <div class="flex items-center justify-between p-6 border-b border-solid border-border">
-          <h1 id="bugpin-title">
-            Report a Bug
-          </h1>
-          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-                fill="currentColor"
-              />
-            </svg>
+          <h1 id="bugpin-title">{t('dialog.title')}</h1>
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label={t('aria.close')}>
+            <X class="w-5 h-5" />
           </Button>
         </div>
 
@@ -157,33 +151,26 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
           <>
             {/* Tabs */}
             <div class="p-4 pb-0 bg-transparent">
-              <Tabs
-                tabs={TABS.map((tab) => ({
-                  ...tab,
-                  label:
-                    tab.id === 'media' && mediaCount > 0
-                      ? `${tab.label} (${mediaCount})`
-                      : tab.label,
-                }))}
-                activeTab={activeTab}
-                onTabChange={onActiveTabChange}
-              />
+              <Tabs tabs={tabs} activeTab={activeTab} onTabChange={onActiveTabChange} />
             </div>
 
             {/* Body */}
-            <div class="flex-1 overflow-y-auto p-6">
+            <div class="flex-auto min-h-0 flex flex-col">
               {/* Details Tab */}
               {activeTab === 'details' && (
-                <form class="flex flex-col gap-4" onSubmit={handleSubmit}>
+                <form
+                  class="flex-auto min-h-0 overflow-y-auto p-6 flex flex-col gap-4"
+                  onSubmit={handleSubmit}
+                >
                   {/* Title */}
                   <div class="flex flex-col gap-1.5">
                     <Label for="bugpin-title-input" required>
-                      Title
+                      {t('dialog.fields.title.label')}
                     </Label>
                     <Input
                       id="bugpin-title-input"
                       type="text"
-                      placeholder="Brief description of the issue"
+                      placeholder={t('dialog.fields.title.placeholder')}
                       value={formData.title}
                       onInput={(e) =>
                         handleInputChange('title', (e.target as HTMLInputElement).value)
@@ -201,10 +188,10 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
 
                   {/* Description */}
                   <div class="flex flex-col gap-1.5">
-                    <Label for="bugpin-description">Description</Label>
+                    <Label for="bugpin-description">{t('dialog.fields.description.label')}</Label>
                     <Textarea
                       id="bugpin-description"
-                      placeholder="Steps to reproduce, expected behavior, etc."
+                      placeholder={t('dialog.fields.description.placeholder')}
                       value={formData.description}
                       onInput={(e) =>
                         handleInputChange('description', (e.target as HTMLTextAreaElement).value)
@@ -214,7 +201,7 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
 
                   {/* Priority */}
                   <div class="flex flex-col gap-1.5">
-                    <Label for="bugpin-priority">Priority</Label>
+                    <Label for="bugpin-priority">{t('dialog.fields.priority.label')}</Label>
                     <Select
                       id="bugpin-priority"
                       value={formData.priority}
@@ -222,21 +209,21 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
                         handleInputChange('priority', (e.target as HTMLSelectElement).value)
                       }
                     >
-                      <option value="highest">Highest</option>
-                      <option value="high">High</option>
-                      <option value="medium">Medium</option>
-                      <option value="low">Low</option>
-                      <option value="lowest">Lowest</option>
+                      <option value="highest">{t('dialog.priority.highest')}</option>
+                      <option value="high">{t('dialog.priority.high')}</option>
+                      <option value="medium">{t('dialog.priority.medium')}</option>
+                      <option value="low">{t('dialog.priority.low')}</option>
+                      <option value="lowest">{t('dialog.priority.lowest')}</option>
                     </Select>
                   </div>
 
                   {/* Name */}
                   <div class="flex flex-col gap-1.5">
-                    <Label for="bugpin-name">Name (optional)</Label>
+                    <Label for="bugpin-name">{t('dialog.fields.name.label')}</Label>
                     <Input
                       id="bugpin-name"
                       type="text"
-                      placeholder="Your name"
+                      placeholder={t('dialog.fields.name.placeholder')}
                       value={formData.reporterName}
                       onInput={(e) =>
                         handleInputChange('reporterName', (e.target as HTMLInputElement).value)
@@ -246,11 +233,11 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
 
                   {/* Email */}
                   <div class="flex flex-col gap-1.5">
-                    <Label for="bugpin-email">Email (optional)</Label>
+                    <Label for="bugpin-email">{t('dialog.fields.email.label')}</Label>
                     <Input
                       id="bugpin-email"
                       type="email"
-                      placeholder="your@email.com"
+                      placeholder={t('dialog.fields.email.placeholder')}
                       value={formData.reporterEmail}
                       onInput={(e) =>
                         handleInputChange('reporterEmail', (e.target as HTMLInputElement).value)
@@ -279,6 +266,10 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
                   enableAnnotation={enableAnnotation}
                   maxImageSize={maxImageSize}
                   maxVideoSize={maxVideoSize}
+                  reduceQuality={reduceScreenshotQuality}
+                  onReduceQualityChange={onReduceScreenshotQualityChange}
+                  oversizedCapture={oversizedCapture}
+                  onDismissOversizedCapture={onDismissOversizedCapture}
                 />
               )}
             </div>
@@ -286,13 +277,13 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
             {/* Footer */}
             <div class="flex gap-3 p-6 border-t border-solid border-border bg-muted">
               <Button variant="outline" class="flex-1" onClick={onClose} disabled={isSubmitting}>
-                Cancel
+                {t('dialog.buttons.cancel')}
               </Button>
               <Button class="flex-1" onClick={handleSubmit} disabled={isSubmitting}>
                 {isSubmitting ? (
                   <span class="w-4 h-4 border-2 border-solid border-white/30 border-t-white rounded-full animate-[spin_0.8s_linear_infinite]" />
                 ) : (
-                  'Submit Report'
+                  t('dialog.buttons.submit')
                 )}
               </Button>
             </div>
@@ -301,7 +292,7 @@ export const WidgetDialog: FunctionComponent<WidgetDialogProps> = ({
 
         {/* Branding */}
         <div class="py-3 px-6 text-center text-xs text-muted-foreground border-t border-solid border-border bg-background">
-          Powered by{' '}
+          {t('dialog.branding.poweredBy')}{' '}
           <a
             href="https://bugpin.io"
             target="_blank"

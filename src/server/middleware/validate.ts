@@ -1,6 +1,187 @@
 import type { MiddlewareHandler } from 'hono';
 import { z, ZodSchema } from 'zod';
 import { isValidUrl, normalizeUrl } from '../utils/validators.js';
+import { SUPPORTED_LOCALES } from '@shared/types';
+
+const localeEnumValues = SUPPORTED_LOCALES as readonly [string, ...string[]];
+
+const projectLanguageSchema = z.object({
+  mode: z.enum(['auto', 'manual'], {
+    errorMap: () => ({ message: 'language.mode must be "auto" or "manual"' }),
+  }),
+  defaultLanguage: z.enum(localeEnumValues, {
+    errorMap: () => ({
+      message: `language.defaultLanguage must be one of: ${SUPPORTED_LOCALES.join(', ')}`,
+    }),
+  }),
+});
+
+const localizedStringShape: Record<string, z.ZodOptional<z.ZodString>> = {};
+for (const code of SUPPORTED_LOCALES) {
+  if (code !== 'en') {
+    localizedStringShape[code] = z.string().optional();
+  }
+}
+
+const localizedStringSchema = z
+  .object({
+    en: z
+      .string({ required_error: 'en is required when providing a localized string' })
+      .min(1, 'en must not be empty when providing a localized string'),
+    ...localizedStringShape,
+  })
+  .strict();
+
+const projectLocalizedTextField = z.union([z.null(), localizedStringSchema]).optional();
+
+const positionEnum = z.enum(['bottom-right', 'bottom-left', 'top-right', 'top-left']);
+const buttonShapeEnum = z.enum(['rectangle', 'round']);
+const themeEnum = z.enum(['auto', 'light', 'dark']);
+const hexColor = z.string();
+const nullableString = z.string().nullable();
+
+const launcherButtonCommonFields = {
+  position: positionEnum.optional(),
+  buttonShape: buttonShapeEnum.optional(),
+  buttonIcon: nullableString.optional(),
+  buttonIconSize: z.number().optional(),
+  buttonIconStroke: z.number().optional(),
+  theme: themeEnum.optional(),
+  enableHoverScaleEffect: z.boolean().optional(),
+  tooltipEnabled: z.boolean().optional(),
+  lightButtonColor: hexColor.optional(),
+  lightTextColor: hexColor.optional(),
+  lightButtonHoverColor: hexColor.optional(),
+  lightTextHoverColor: hexColor.optional(),
+  darkButtonColor: hexColor.optional(),
+  darkTextColor: hexColor.optional(),
+  darkButtonHoverColor: hexColor.optional(),
+  darkTextHoverColor: hexColor.optional(),
+};
+
+const widgetLauncherButtonProjectSchema = z
+  .object({
+    ...launcherButtonCommonFields,
+    buttonText: projectLocalizedTextField,
+    tooltipText: projectLocalizedTextField,
+  })
+  .strict();
+
+const widgetDialogColorsSchema = z
+  .object({
+    lightButtonColor: hexColor.optional(),
+    lightTextColor: hexColor.optional(),
+    lightButtonHoverColor: hexColor.optional(),
+    lightTextHoverColor: hexColor.optional(),
+    lightBackgroundColor: hexColor.optional(),
+    lightSecondaryColor: hexColor.optional(),
+    lightInputColor: hexColor.optional(),
+    lightForegroundColor: hexColor.optional(),
+    darkButtonColor: hexColor.optional(),
+    darkTextColor: hexColor.optional(),
+    darkButtonHoverColor: hexColor.optional(),
+    darkTextHoverColor: hexColor.optional(),
+    darkBackgroundColor: hexColor.optional(),
+    darkSecondaryColor: hexColor.optional(),
+    darkInputColor: hexColor.optional(),
+    darkForegroundColor: hexColor.optional(),
+  })
+  .strict();
+
+const projectScreenshotSchema = z
+  .object({
+    useScreenCaptureAPI: z.boolean().optional(),
+    maxScreenshotSize: z.number().int().min(1).max(50).optional(),
+    maxImageUploadSizeMb: z.number().int().min(1).max(50).optional(),
+    maxVideoUploadSizeMb: z.number().int().min(1).max(500).optional(),
+  })
+  .strict();
+
+const projectSecuritySchema = z
+  .object({
+    allowedOrigins: z.array(z.string()).optional(),
+  })
+  .strict();
+
+const projectBrandingSchema = z
+  .object({
+    logoUrl: z.string().optional(),
+    companyName: z.string().optional(),
+    primaryColor: z.string().optional(),
+    accentColor: z.string().optional(),
+    poweredByVisible: z.boolean().optional(),
+  })
+  .strict();
+
+const customFieldSchema = z
+  .object({
+    id: z.string(),
+    label: z.string(),
+    type: z.enum(['text', 'select', 'checkbox']),
+    required: z.boolean().optional(),
+    options: z.array(z.string()).optional(),
+  })
+  .strict();
+
+const projectFieldsSchema = z
+  .object({
+    titleRequired: z.boolean().optional(),
+    titlePlaceholder: z.string().optional(),
+    descriptionRequired: z.boolean().optional(),
+    descriptionPlaceholder: z.string().optional(),
+    priorityVisible: z.boolean().optional(),
+    priorityDefault: z.enum(['lowest', 'low', 'medium', 'high', 'highest']).optional(),
+    emailVisible: z.boolean().optional(),
+    emailRequired: z.boolean().optional(),
+    customFields: z.array(customFieldSchema).optional(),
+  })
+  .strict();
+
+const projectReporterNotificationsSchema = z
+  .object({
+    emailEnabled: z.boolean().optional(),
+    notifyOnNewReport: z.boolean().optional(),
+    notifyOnStatusChange: z.boolean().optional(),
+    notifyOnPriorityChange: z.boolean().optional(),
+    notifyOnAssignment: z.boolean().optional(),
+    messagingEnabled: z.boolean().optional(),
+  })
+  .strict();
+
+const projectLegacyWidgetSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    showOnMobile: z.boolean().optional(),
+    captureMethod: z.enum(['visible', 'fullpage', 'element']).optional(),
+    rateLimit: z.number().optional(),
+  })
+  .strict();
+
+const projectSettingsSchema = z
+  .object({
+    defaultAssigneeUserId: z.string().nullable().optional(),
+    language: projectLanguageSchema.optional(),
+    widgetLauncherButton: widgetLauncherButtonProjectSchema.optional(),
+    widgetDialog: widgetDialogColorsSchema.optional(),
+    screenshot: projectScreenshotSchema.optional(),
+    security: projectSecuritySchema.optional(),
+    branding: projectBrandingSchema.optional(),
+    fields: projectFieldsSchema.optional(),
+    notifyReporter: z.boolean().optional(),
+    reporterNotifications: projectReporterNotificationsSchema.optional(),
+    widget: projectLegacyWidgetSchema.optional(),
+  })
+  .strict();
+
+const globalLocalizedTextField = z.union([z.null(), localizedStringSchema]);
+
+const widgetLauncherButtonGlobalSchema = z
+  .object({
+    ...launcherButtonCommonFields,
+    buttonText: globalLocalizedTextField.optional(),
+    tooltipText: globalLocalizedTextField.optional(),
+  })
+  .strict();
 
 // Types
 
@@ -100,7 +281,7 @@ export function validate(options: ValidationOptions): MiddlewareHandler {
           message: 'Request validation failed',
           details: errors,
         },
-        400,
+        400
       );
     }
 
@@ -184,7 +365,7 @@ export const schemas = {
   // Update project request
   updateProject: z.object({
     name: z.string().min(2, 'Name must be at least 2 characters').max(100).optional(),
-    settings: z.record(z.unknown()).optional(),
+    settings: projectSettingsSchema.optional(),
     isActive: z.boolean().optional(),
   }),
 
@@ -246,6 +427,7 @@ export const schemas = {
   updateSettings: z.object({
     appName: z.string().min(1).max(100).optional(),
     appUrl: z.string().optional(),
+    widgetLauncherButton: widgetLauncherButtonGlobalSchema.optional(),
     smtpEnabled: z.boolean().optional(),
     smtpConfig: z
       .object({
@@ -277,12 +459,21 @@ export const schemas = {
       })
       .optional(),
     retentionDays: z.number().int().min(0).max(3650).optional(),
+    screenshot: z
+      .object({
+        useScreenCaptureAPI: z.boolean().optional(),
+        maxScreenshotSize: z.number().int().min(1).max(50).optional(),
+        maxImageUploadSizeMb: z.number().int().min(1).max(50).optional(),
+        maxVideoUploadSizeMb: z.number().int().min(1).max(500).optional(),
+      })
+      .optional(),
     maxScreenshotSizeMb: z.number().int().min(1).max(50).optional(),
     maxImageUploadSizeMb: z.number().int().min(1).max(50).optional(),
     maxVideoUploadSizeMb: z.number().int().min(1).max(500).optional(),
     rateLimitPerMinute: z.number().int().min(1).max(1000).optional(),
     sessionMaxAgeDays: z.number().int().min(1).max(365).optional(),
     updateCheckEnabled: z.boolean().optional(),
+    language: projectLanguageSchema.optional(),
   }),
 
   // Create integration request

@@ -9,6 +9,10 @@ export interface CaptureOptions {
   selector?: string;
   useScreenCaptureAPI?: boolean;
   cacheBust?: boolean;
+  // When set, overrides the device pixel ratio used for capture. Lets callers
+  // trade resolution for a smaller output, e.g. to fit a server size budget.
+  // Still clamped to safe canvas/pixel limits.
+  pixelRatioOverride?: number;
 }
 
 // Guardrails to prevent crashes
@@ -61,7 +65,7 @@ async function waitForImages(element: HTMLElement): Promise<void> {
           };
           img.addEventListener('load', onLoad, { once: true });
           img.addEventListener('error', onError, { once: true });
-        }),
+        })
       );
     } else if (img.decode) {
       // Image already loaded - just decode
@@ -81,7 +85,12 @@ async function waitForImages(element: HTMLElement): Promise<void> {
  * @param height - Height in CSS pixels (will be rounded up)
  * @param mode - Capture mode for context-specific error messages
  */
-function getSafePixelRatio(width: number, height: number, mode: CaptureMethod = 'visible'): number {
+function getSafePixelRatio(
+  width: number,
+  height: number,
+  mode: CaptureMethod = 'visible',
+  override?: number
+): number {
   // Round up to handle float dimensions from getBoundingClientRect
   const w = Math.ceil(width);
   const h = Math.ceil(height);
@@ -91,12 +100,12 @@ function getSafePixelRatio(width: number, height: number, mode: CaptureMethod = 
     if (mode === 'fullpage') {
       throw new Error(
         `Full page dimensions (${w}x${h}) exceed maximum canvas size (${MAX_CANVAS_DIMENSION}px). ` +
-          `This page is too large for full page capture. Use visible viewport mode instead.`,
+          `This page is too large for full page capture. Use visible viewport mode instead.`
       );
     }
     throw new Error(
       `Screenshot dimensions (${w}x${h}) exceed maximum canvas size (${MAX_CANVAS_DIMENSION}px). ` +
-        `Try capturing a smaller element or use visible viewport mode.`,
+        `Try capturing a smaller element or use visible viewport mode.`
     );
   }
 
@@ -104,16 +113,18 @@ function getSafePixelRatio(width: number, height: number, mode: CaptureMethod = 
     if (mode === 'fullpage') {
       throw new Error(
         `Full page total pixels (${w * h}) exceed maximum (${MAX_TOTAL_PIXELS}). ` +
-          `This page is too large for full page capture. Use visible viewport mode instead.`,
+          `This page is too large for full page capture. Use visible viewport mode instead.`
       );
     }
     throw new Error(
       `Screenshot total pixels (${w * h}) exceed maximum (${MAX_TOTAL_PIXELS}). ` +
-        `Try capturing a smaller element or use visible viewport mode.`,
+        `Try capturing a smaller element or use visible viewport mode.`
     );
   }
 
-  let dpr = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
+  const baseDpr =
+    typeof override === 'number' && override > 0 ? override : window.devicePixelRatio || 1;
+  let dpr = Math.min(baseDpr, MAX_PIXEL_RATIO);
 
   // Check if output would exceed limits and reduce DPR if needed
   let outputWidth = w * dpr;
@@ -335,7 +346,7 @@ async function captureWithScreenCaptureAPI(): Promise<string> {
   if (!isScreenCaptureAvailable()) {
     throw new Error(
       'Screen Capture API is not available. The host page must be served over HTTPS ' +
-        'and include the header: Permissions-Policy: display-capture=self',
+        'and include the header: Permissions-Policy: display-capture=self'
     );
   }
 
@@ -382,7 +393,13 @@ async function captureWithScreenCaptureAPI(): Promise<string> {
  * @returns Base64 data URL of the screenshot
  */
 export async function captureScreenshot(options: CaptureOptions = {}): Promise<string> {
-  const { method = 'visible', selector, useScreenCaptureAPI = false, cacheBust } = options;
+  const {
+    method = 'visible',
+    selector,
+    useScreenCaptureAPI = false,
+    cacheBust,
+    pixelRatioOverride,
+  } = options;
 
   // Use Screen Capture API if enabled, fall back to html-to-image on failure
   if (useScreenCaptureAPI) {
@@ -392,7 +409,7 @@ export async function captureScreenshot(options: CaptureOptions = {}): Promise<s
       console.warn(
         '[BugPin] Screen Capture API unavailable, falling back to DOM capture.',
         'Ensure the page is served over HTTPS and the browser has screen recording permission.',
-        `(${error instanceof Error ? error.message : error})`,
+        `(${error instanceof Error ? error.message : error})`
       );
     }
   }
@@ -470,7 +487,7 @@ export async function captureScreenshot(options: CaptureOptions = {}): Promise<s
 
     // For visible mode: capture area that includes the viewport, then crop
     if (method === 'visible') {
-      const dpr = getSafePixelRatio(viewportWidth, viewportHeight, 'visible');
+      const dpr = getSafePixelRatio(viewportWidth, viewportHeight, 'visible', pixelRatioOverride);
       const bgColor = getBackgroundColor();
 
       // Calculate the area we need to capture (from origin to bottom of viewport)
@@ -533,7 +550,7 @@ export async function captureScreenshot(options: CaptureOptions = {}): Promise<s
         0, // dest x
         0, // dest y
         viewportWidth * dpr, // dest width
-        viewportHeight * dpr, // dest height
+        viewportHeight * dpr // dest height
       );
 
       return croppedCanvas.toDataURL('image/png');
@@ -545,16 +562,16 @@ export async function captureScreenshot(options: CaptureOptions = {}): Promise<s
         document.body.scrollWidth,
         document.documentElement.scrollWidth,
         document.body.offsetWidth,
-        document.documentElement.offsetWidth,
+        document.documentElement.offsetWidth
       );
       const fullHeight = Math.max(
         document.body.scrollHeight,
         document.documentElement.scrollHeight,
         document.body.offsetHeight,
-        document.documentElement.offsetHeight,
+        document.documentElement.offsetHeight
       );
 
-      const dpr = getSafePixelRatio(fullWidth, fullHeight, 'fullpage');
+      const dpr = getSafePixelRatio(fullWidth, fullHeight, 'fullpage', pixelRatioOverride);
       const bgColor = getBackgroundColor();
 
       const toCanvasOptions: Parameters<typeof toCanvas>[1] = {
@@ -573,7 +590,7 @@ export async function captureScreenshot(options: CaptureOptions = {}): Promise<s
 
     // For element mode: capture the specific element
     const rect = element.getBoundingClientRect();
-    const dpr = getSafePixelRatio(rect.width, rect.height, 'element');
+    const dpr = getSafePixelRatio(rect.width, rect.height, 'element', pixelRatioOverride);
     const bgColor = getBackgroundColor();
 
     const toCanvasOptions: Parameters<typeof toCanvas>[1] = {

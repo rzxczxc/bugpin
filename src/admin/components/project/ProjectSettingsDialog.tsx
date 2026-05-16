@@ -11,7 +11,10 @@ import type {
   WidgetDialogSettings,
   ScreenshotSettings,
   ReporterNotificationSettings,
+  ProjectLanguageSettings,
+  LocaleCode,
 } from '@shared/types';
+import { SUPPORTED_LOCALES } from '@shared/types';
 import {
   Dialog,
   DialogBody,
@@ -46,8 +49,25 @@ interface ProjectSettingsDialogProps {
     | 'widgetLauncherButton'
     | 'screenshot'
     | 'notifications'
-    | 'whitelists';
+    | 'whitelists'
+    | 'language';
 }
+
+const DEFAULT_PROJECT_LANGUAGE: ProjectLanguageSettings = {
+  mode: 'auto',
+  defaultLanguage: 'en',
+};
+
+const LOCALE_DISPLAY_LABELS: Record<LocaleCode, string> = {
+  en: 'English',
+  de: 'Deutsch',
+  fr: 'Français',
+  nl: 'Nederlands',
+  es: 'Español',
+  it: 'Italiano',
+  ja: '日本語 (JP)',
+  zh: '中文 (简体) (CN)',
+};
 
 import type { NotificationDefaultSettings } from '@shared/types';
 
@@ -81,7 +101,9 @@ export function ProjectSettingsDialog({
   >({});
 
   // Reporter notification settings state
-  const [reporterSettings, setReporterSettings] = useState<Partial<ReporterNotificationSettings>>({});
+  const [reporterSettings, setReporterSettings] = useState<Partial<ReporterNotificationSettings>>(
+    {}
+  );
 
   // Assignment settings state
   const [defaultAssigneeUserId, setDefaultAssigneeUserId] = useState<string | null>(null);
@@ -89,6 +111,10 @@ export function ProjectSettingsDialog({
   // Whitelist settings state
   const [useCustomWhitelist, setUseCustomWhitelist] = useState(false);
   const [whitelistSettings, setWhitelistSettings] = useState<string[]>([]);
+
+  // Language settings state
+  const [languageSettings, setLanguageSettings] =
+    useState<ProjectLanguageSettings>(DEFAULT_PROJECT_LANGUAGE);
 
   // Fetch project details
   const { data: projectDetail, isLoading: isLoadingProject } = useQuery({
@@ -147,22 +173,19 @@ export function ProjectSettingsDialog({
     if (projectDetail) {
       // Widget Dialog settings - using new nested structure
       const dialogSettings = projectDetail.settings?.widgetDialog;
-      const hasCustomWidgetDialog =
-        dialogSettings && Object.keys(dialogSettings).length > 0;
+      const hasCustomWidgetDialog = dialogSettings && Object.keys(dialogSettings).length > 0;
       setUseCustomWidgetDialog(!!hasCustomWidgetDialog);
       setWidgetDialogSettings(dialogSettings || {});
 
       // Widget Button (launcher) settings - using new nested structure
       const launcherSettings = projectDetail.settings?.widgetLauncherButton;
-      const hasCustomButton =
-        launcherSettings && Object.keys(launcherSettings).length > 0;
+      const hasCustomButton = launcherSettings && Object.keys(launcherSettings).length > 0;
       setUseCustomButton(!!hasCustomButton);
       setButtonSettings(launcherSettings || {});
 
       // Screenshot settings - using new nested structure
       const screenshotConf = projectDetail.settings?.screenshot;
-      const hasCustomScreenshot =
-        screenshotConf && Object.keys(screenshotConf).length > 0;
+      const hasCustomScreenshot = screenshotConf && Object.keys(screenshotConf).length > 0;
       setUseCustomScreenshot(!!hasCustomScreenshot);
       setScreenshotSettings({
         useScreenCaptureAPI: screenshotConf?.useScreenCaptureAPI,
@@ -183,6 +206,9 @@ export function ProjectSettingsDialog({
 
       // Default assignee
       setDefaultAssigneeUserId(projectDetail.settings?.defaultAssigneeUserId ?? null);
+
+      // Language settings
+      setLanguageSettings(projectDetail.settings?.language ?? DEFAULT_PROJECT_LANGUAGE);
     }
   }, [projectDetail]);
 
@@ -221,7 +247,7 @@ export function ProjectSettingsDialog({
     mutationFn: async (data: Partial<ProjectNotificationDefaults>) => {
       const response = await api.patch(
         `/notification-preferences/projects/${project.id}/defaults`,
-        data,
+        data
       );
       return response.data;
     },
@@ -234,7 +260,7 @@ export function ProjectSettingsDialog({
   const deleteNotificationMutation = useMutation({
     mutationFn: async () => {
       const response = await api.delete(
-        `/notification-preferences/projects/${project.id}/defaults`,
+        `/notification-preferences/projects/${project.id}/defaults`
       );
       return response.data;
     },
@@ -282,12 +308,16 @@ export function ProjectSettingsDialog({
 
       // Reporter notification settings
       if (useCustomNotifications && Object.keys(reporterSettings).length > 0) {
-        newSettings.reporterNotifications = reporterSettings as ProjectSettings['reporterNotifications'];
+        newSettings.reporterNotifications =
+          reporterSettings as ProjectSettings['reporterNotifications'];
       } else {
         newSettings.reporterNotifications = undefined;
       }
 
       newSettings.defaultAssigneeUserId = defaultAssigneeUserId;
+
+      // Language settings
+      newSettings.language = languageSettings;
 
       // Save project settings
       await projectMutation.mutateAsync({
@@ -350,30 +380,34 @@ export function ProjectSettingsDialog({
           <Tabs
             value={activeTab}
             onValueChange={(v) => setActiveTab(v as typeof activeTab)}
-            className="flex min-h-0 flex-1 flex-col"
+            orientation="vertical"
+            className="flex min-h-0 flex-1 flex-row gap-4"
           >
-            <TabsList className="flex h-auto w-full flex-shrink-0 flex-wrap justify-start gap-2 rounded-xl p-2">
-              <TabsTrigger value="assignments" className="px-4 py-2">
+            <TabsList className="flex h-auto w-48 flex-shrink-0 flex-col items-stretch justify-start gap-1 rounded-xl bg-muted p-2">
+              <TabsTrigger value="assignments" className="justify-start px-3 py-2">
                 Assignments
               </TabsTrigger>
-              <TabsTrigger value="widgetDialog" className="px-4 py-2">
+              <TabsTrigger value="widgetDialog" className="justify-start px-3 py-2">
                 Widget Dialog
               </TabsTrigger>
-              <TabsTrigger value="widgetLauncherButton" className="px-4 py-2">
+              <TabsTrigger value="widgetLauncherButton" className="justify-start px-3 py-2">
                 Widget Button
               </TabsTrigger>
-              <TabsTrigger value="screenshot" className="px-4 py-2">
+              <TabsTrigger value="screenshot" className="justify-start px-3 py-2">
                 Screenshot
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="px-4 py-2">
+              <TabsTrigger value="notifications" className="justify-start px-3 py-2">
                 Notifications
               </TabsTrigger>
-              <TabsTrigger value="whitelists" className="px-4 py-2">
+              <TabsTrigger value="whitelists" className="justify-start px-3 py-2">
                 Whitelists
+              </TabsTrigger>
+              <TabsTrigger value="language" className="justify-start px-3 py-2">
+                Language
               </TabsTrigger>
             </TabsList>
 
-            <DialogBody className="flex-1 pt-4">
+            <DialogBody className="flex-1 min-w-0 pt-0">
               <TabsContent value="assignments" className="mt-0">
                 <div className="space-y-5 rounded-xl border bg-card p-5">
                   <div className="space-y-1">
@@ -388,7 +422,10 @@ export function ProjectSettingsDialog({
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">
                           {selectedAssignee.avatarUrl ? (
-                            <AvatarImage src={selectedAssignee.avatarUrl} alt={selectedAssignee.name} />
+                            <AvatarImage
+                              src={selectedAssignee.avatarUrl}
+                              alt={selectedAssignee.name}
+                            />
                           ) : null}
                           <AvatarFallback>
                             {selectedAssignee.name.charAt(0).toUpperCase()}
@@ -494,10 +531,7 @@ export function ProjectSettingsDialog({
                 <div className="space-y-4">
                   <div className="flex items-center justify-between pb-3 border-b">
                     <div className="space-y-0.5">
-                      <Label
-                        htmlFor="use-custom-notifications"
-                        className="text-sm font-medium"
-                      >
+                      <Label htmlFor="use-custom-notifications" className="text-sm font-medium">
                         Use Custom Notifications
                       </Label>
                       <p className="text-xs text-muted-foreground">
@@ -550,6 +584,69 @@ export function ProjectSettingsDialog({
                   useCustomSettings={useCustomWhitelist}
                   onCustomToggle={setUseCustomWhitelist}
                 />
+              </TabsContent>
+
+              {/* Language Tab */}
+              <TabsContent value="language" className="mt-0">
+                <div className="space-y-5 rounded-xl border bg-card p-5">
+                  <div className="space-y-1">
+                    <Label className="text-sm font-medium">Language Mode</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Auto detects each visitor's language from the page or browser; manual locks
+                      the widget and reporter emails to one language for every report.
+                    </p>
+                  </div>
+                  <div role="radiogroup" aria-label="Language mode" className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={languageSettings.mode === 'auto' ? 'default' : 'outline'}
+                      role="radio"
+                      aria-checked={languageSettings.mode === 'auto'}
+                      onClick={() => setLanguageSettings({ ...languageSettings, mode: 'auto' })}
+                    >
+                      Auto-detect
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={languageSettings.mode === 'manual' ? 'default' : 'outline'}
+                      role="radio"
+                      aria-checked={languageSettings.mode === 'manual'}
+                      onClick={() => setLanguageSettings({ ...languageSettings, mode: 'manual' })}
+                    >
+                      Manual (locked)
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <Label htmlFor="default-language" className="text-sm font-medium">
+                      Default Language
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      In auto mode this is the fallback when detection finds no supported match. In
+                      manual mode this is the locked language used for every report.
+                    </p>
+                    <Select
+                      value={languageSettings.defaultLanguage}
+                      onValueChange={(val) =>
+                        setLanguageSettings({
+                          ...languageSettings,
+                          defaultLanguage: val as LocaleCode,
+                        })
+                      }
+                    >
+                      <SelectTrigger id="default-language" className="h-11 max-w-xl">
+                        <SelectValue placeholder="Select default language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SUPPORTED_LOCALES.map((code) => (
+                          <SelectItem key={code} value={code}>
+                            {LOCALE_DISPLAY_LABELS[code]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </TabsContent>
             </DialogBody>
           </Tabs>

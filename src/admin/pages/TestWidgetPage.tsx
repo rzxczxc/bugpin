@@ -45,6 +45,26 @@ import {
 
 const STORAGE_KEY = 'bugpin_test_api_key';
 
+const LOCALE_OPTIONS: { code: string; label: string }[] = [
+  { code: 'en', label: 'English' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'fr', label: 'Français' },
+  { code: 'nl', label: 'Nederlands' },
+  { code: 'es', label: 'Español' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'ja', label: '日本語 (JP)' },
+  { code: 'zh', label: '中文 (简体) (CN)' },
+];
+
+declare global {
+  interface Window {
+    BugPin?: {
+      setLanguage?: (code: string) => string | null;
+      getLanguage?: () => string;
+    };
+  }
+}
+
 const STATS = [
   { label: 'Total Revenue', value: '$45,231', change: '+12.5%', positive: true },
   { label: 'Active Users', value: '2,847', change: '+8.3%', positive: true },
@@ -91,27 +111,27 @@ const TRANSACTIONS = [
 ];
 
 const PROJECTS = [
-  { name: 'Website Redesign', progress: 85, color: 'bg-primary' },
-  { name: 'Mobile App Development', progress: 62, color: 'bg-green-500' },
-  { name: 'API Integration', progress: 45, color: 'bg-yellow-500' },
-  { name: 'Database Migration', progress: 28, color: 'bg-red-500' },
+  { name: 'Website Redesign', progress: 85, color: 'bg-slate-300 dark:bg-slate-600' },
+  { name: 'Mobile App Development', progress: 62, color: 'bg-slate-300 dark:bg-slate-600' },
+  { name: 'API Integration', progress: 45, color: 'bg-slate-300 dark:bg-slate-600' },
+  { name: 'Database Migration', progress: 28, color: 'bg-slate-300 dark:bg-slate-600' },
 ];
 
 const CHART_BARS = [
-  { height: 65, color: 'bg-blue-500' },
-  { height: 85, color: 'bg-green-500' },
-  { height: 75, color: 'bg-yellow-500' },
-  { height: 90, color: 'bg-red-500' },
-  { height: 70, color: 'bg-blue-500' },
-  { height: 95, color: 'bg-green-500' },
-  { height: 80, color: 'bg-yellow-500' },
+  { height: 65, color: 'bg-slate-300 dark:bg-slate-600' },
+  { height: 85, color: 'bg-slate-400 dark:bg-slate-500' },
+  { height: 75, color: 'bg-slate-500 dark:bg-slate-400' },
+  { height: 90, color: 'bg-slate-600 dark:bg-slate-300' },
+  { height: 70, color: 'bg-slate-300 dark:bg-slate-600' },
+  { height: 95, color: 'bg-slate-400 dark:bg-slate-500' },
+  { height: 80, color: 'bg-slate-500 dark:bg-slate-400' },
 ];
 
 const CHART_LEGEND = [
-  { label: 'Jan - Mar', color: 'bg-blue-500' },
-  { label: 'Apr - Jun', color: 'bg-green-500' },
-  { label: 'Jul - Sep', color: 'bg-yellow-500' },
-  { label: 'Oct - Dec', color: 'bg-red-500' },
+  { label: 'Jan - Mar', color: 'bg-slate-300 dark:bg-slate-600' },
+  { label: 'Apr - Jun', color: 'bg-slate-400 dark:bg-slate-500' },
+  { label: 'Jul - Sep', color: 'bg-slate-500 dark:bg-slate-400' },
+  { label: 'Oct - Dec', color: 'bg-slate-600 dark:bg-slate-300' },
 ];
 
 const NAV_SECTIONS = [
@@ -160,6 +180,7 @@ export function TestWidgetPage() {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [screenshotMode, setScreenshotMode] = useState(false);
+  const [widgetLocale, setWidgetLocale] = useState('en');
 
   const { resolvedTheme, setTheme } = useTheme();
 
@@ -261,6 +282,11 @@ export function TestWidgetPage() {
     setTheme(resolvedTheme === 'light' ? 'dark' : 'light');
   };
 
+  const handleSetWidgetLanguage = (code: string) => {
+    setWidgetLocale(code);
+    window.BugPin?.setLanguage?.(code);
+  };
+
   // Don't render until we've checked for API key
   if (isInitialLoad) {
     return (
@@ -326,15 +352,16 @@ export function TestWidgetPage() {
 
       {/* API Key Notice Banner */}
       {apiKey && (
-        <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-5 py-3 text-center text-sm border-b border-green-200 dark:border-green-800 flex-shrink-0">
+        <div
+          className="text-white px-5 py-3 text-center text-sm flex-shrink-0"
+          style={{ backgroundColor: '#02658D' }}
+        >
           API key:{' '}
-          <code className="bg-green-200 dark:bg-green-800 px-1.5 py-0.5 rounded font-mono text-xs">
-            {apiKey}
-          </code>
+          <code className="bg-white/15 px-1.5 py-0.5 rounded font-mono text-xs">{apiKey}</code>
           <Button
-            variant="secondary"
+            variant="outline"
             size="sm"
-            className="ml-3 h-7 bg-green-600 hover:bg-green-700 text-white"
+            className="ml-3 h-7 bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white"
             onClick={handleChangeApiKey}
           >
             Change
@@ -346,7 +373,9 @@ export function TestWidgetPage() {
         {/* Sidebar */}
         <aside className="w-64 flex-shrink-0 bg-zinc-800 dark:bg-zinc-900 text-white overflow-y-auto">
           <div className="px-5 py-5 border-b border-zinc-700">
-            <div className="text-2xl font-semibold">BugPin Test</div>
+            <div className="flex items-center gap-3">
+              <img src="/branding/dark/logo-dark.svg" alt="BugPin" className="h-7 w-auto" />
+            </div>
             <div className="text-xs text-zinc-400 mt-1">Widget Testing Dashboard</div>
           </div>
 
@@ -362,8 +391,9 @@ export function TestWidgetPage() {
                     <div
                       key={item.label}
                       className={`px-5 py-3 flex items-center gap-3 cursor-pointer transition-colors hover:bg-zinc-700 ${
-                        item.active ? 'bg-zinc-700 border-l-3 border-blue-500 pl-[17px]' : ''
+                        item.active ? 'bg-zinc-700 border-l-3 pl-[17px]' : ''
                       }`}
+                      style={item.active ? { borderLeftColor: '#02658D' } : undefined}
                     >
                       <Icon className="w-5 h-5" />
                       <span>{item.label}</span>
@@ -380,7 +410,22 @@ export function TestWidgetPage() {
           {/* Header */}
           <header className="bg-background border-b px-8 h-16 flex items-center justify-between flex-shrink-0">
             <h1 className="text-xl font-semibold">Dashboard Overview</h1>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="widget-language" className="text-xs text-muted-foreground mr-1">
+                Widget language
+              </Label>
+              <Select value={widgetLocale} onValueChange={handleSetWidgetLanguage}>
+                <SelectTrigger id="widget-language" className="h-9 w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LOCALE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.code} value={opt.code}>
+                      {opt.code} — {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button variant="outline" onClick={toggleTheme}>
                 {resolvedTheme === 'light' ? (
                   <>
@@ -474,7 +519,7 @@ export function TestWidgetPage() {
                         <TableCell>
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClasses(
-                              txn.status,
+                              txn.status
                             )}`}
                           >
                             {txn.status}
@@ -506,9 +551,9 @@ export function TestWidgetPage() {
             </Card>
 
             {/* Error Testing */}
-            <Card className="mb-5 border-dashed border-2 border-orange-300 dark:border-orange-700">
+            <Card className="mb-5 border-dashed border-2 border-slate-200 dark:border-slate-700">
               <CardHeader>
-                <CardTitle className="text-orange-600 dark:text-orange-400">
+                <CardTitle className="text-slate-700 dark:text-slate-300">
                   Error Capture Testing
                 </CardTitle>
               </CardHeader>
@@ -518,7 +563,7 @@ export function TestWidgetPage() {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    variant="destructive"
+                    variant="outline"
                     size="sm"
                     onClick={() => console.error('Test error: Something went wrong!')}
                   >
@@ -527,7 +572,6 @@ export function TestWidgetPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
                     onClick={() => console.warn('Test warning: Deprecated API usage detected')}
                   >
                     Trigger Console Warning
@@ -554,9 +598,9 @@ export function TestWidgetPage() {
             </Card>
 
             {/* User Activity Tracking Demo */}
-            <Card className="mb-5 border-dashed border-2 border-blue-300 dark:border-blue-700">
+            <Card className="mb-5 border-dashed border-2 border-slate-200 dark:border-slate-700">
               <CardHeader>
-                <CardTitle className="text-blue-600 dark:text-blue-400">
+                <CardTitle className="text-slate-700 dark:text-slate-300">
                   User Activity Tracking Demo
                 </CardTitle>
               </CardHeader>
@@ -661,9 +705,9 @@ export function TestWidgetPage() {
             </Card>
 
             {/* Storage Keys Demo */}
-            <Card className="mb-5 border-dashed border-2 border-purple-300 dark:border-purple-700">
+            <Card className="mb-5 border-dashed border-2 border-slate-200 dark:border-slate-700">
               <CardHeader>
-                <CardTitle className="text-purple-600 dark:text-purple-400">
+                <CardTitle className="text-slate-700 dark:text-slate-300">
                   Storage Keys Demo
                 </CardTitle>
               </CardHeader>

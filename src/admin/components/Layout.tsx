@@ -7,52 +7,99 @@ import { AppSidebar } from './sidebar/AppSidebar';
 import { Footer } from './Footer';
 import { UpdateBanner } from './UpdateBanner';
 
-// Map hash to sub-tab label (for breadcrumb display)
-const hashToLabel: Record<string, string> = {
-  system: 'System',
-  screenshot: 'Screenshot',
-  storage: 'Storage',
-  design: 'Admin Console',
-  widgetDialog: 'Widget Dialog',
-  widgetLauncherButton: 'Widget Button',
-  notifications: 'Notifications',
-  reporterNotifications: 'Reporter',
-  smtp: 'SMTP',
-  emailTemplates: 'Email Templates',
-  security: 'Rate Limits',
-  users: 'Users',
+interface RouteCrumbConfig {
+  label: string;
+  subTabs?: { hash: string; label: string }[];
+  defaultHash?: string;
+}
+
+const routeCrumbs: Record<string, RouteCrumbConfig> = {
+  '/settings': {
+    label: 'Settings',
+    defaultHash: 'general',
+    subTabs: [
+      { hash: 'general', label: 'General' },
+      { hash: 'storage', label: 'Storage' },
+      { hash: 'smtp', label: 'SMTP' },
+    ],
+  },
+  '/notifications': {
+    label: 'Notifications',
+    defaultHash: 'general',
+    subTabs: [
+      { hash: 'general', label: 'General' },
+      { hash: 'reporter', label: 'Reporter' },
+      { hash: 'email-templates', label: 'Email Templates' },
+    ],
+  },
+  '/users': { label: 'Users' },
+  '/security': { label: 'Security' },
+  '/branding': { label: 'Branding' },
+  '/license': { label: 'License' },
+  '/button': { label: 'Button' },
+  '/dialog': { label: 'Dialog' },
+  '/screenshot': { label: 'Screenshot' },
+  '/language': { label: 'Language' },
 };
+
+function findRouteConfig(pathname: string): { path: string; config: RouteCrumbConfig } | null {
+  for (const [path, config] of Object.entries(routeCrumbs)) {
+    if (pathname === path || pathname.startsWith(path + '/')) {
+      return { path, config };
+    }
+  }
+  return null;
+}
 
 export function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const isSettingsPage = location.pathname.startsWith('/globalsettings');
-  const [activeTabLabel, setActiveTabLabel] = useState('System');
+  const routeMatch = findRouteConfig(location.pathname);
+  const [activeHash, setActiveHash] = useState<string>(window.location.hash.slice(1));
 
-  // Track hash changes for Settings breadcrumb
   useEffect(() => {
-    const updateTab = () => {
-      const hash = window.location.hash.slice(1);
-      if (hash && hashToLabel[hash]) {
-        setActiveTabLabel(hashToLabel[hash]);
-      } else {
-        setActiveTabLabel('System');
-      }
-    };
-
-    updateTab();
-    window.addEventListener('hashchange', updateTab);
-    return () => window.removeEventListener('hashchange', updateTab);
+    const handler = () => setActiveHash(window.location.hash.slice(1));
+    handler();
+    window.addEventListener('hashchange', handler);
+    return () => window.removeEventListener('hashchange', handler);
   }, []);
 
-  // Get page title based on current route
   const getPageTitle = () => {
     const path = location.pathname;
     if (path === '/') return 'Dashboard';
     if (path.startsWith('/reports')) return 'Reports';
     if (path.startsWith('/projects')) return 'Projects';
-    if (path.startsWith('/globalsettings')) return 'Settings';
     return 'BugPin';
+  };
+
+  const renderBreadcrumb = () => {
+    if (!routeMatch) return null;
+    const { path, config } = routeMatch;
+    const activeSubTab = config.subTabs?.find((t) => t.hash === activeHash);
+    const showSub = !!activeSubTab && activeSubTab.hash !== config.defaultHash;
+
+    return (
+      <nav className="flex items-center gap-1 text-sm">
+        {showSub ? (
+          <>
+            <button
+              onClick={() => {
+                navigate(path);
+                history.replaceState(null, '', path);
+                window.dispatchEvent(new HashChangeEvent('hashchange'));
+              }}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {config.label}
+            </button>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium">{activeSubTab.label}</span>
+          </>
+        ) : (
+          <span className="font-medium">{config.label}</span>
+        )}
+      </nav>
+    );
   };
 
   return (
@@ -64,20 +111,8 @@ export function Layout() {
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
 
-          {isSettingsPage ? (
-            <nav className="flex items-center gap-1 text-sm">
-              <button
-                onClick={() => {
-                  navigate('/globalsettings');
-                  window.location.hash = '#system';
-                }}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Settings
-              </button>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{activeTabLabel}</span>
-            </nav>
+          {routeMatch ? (
+            renderBreadcrumb()
           ) : (
             <h1 className="text-sm font-medium">{getPageTitle()}</h1>
           )}
