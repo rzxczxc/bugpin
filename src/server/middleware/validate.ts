@@ -34,28 +34,154 @@ const localizedStringSchema = z
 
 const projectLocalizedTextField = z.union([z.null(), localizedStringSchema]).optional();
 
+const positionEnum = z.enum(['bottom-right', 'bottom-left', 'top-right', 'top-left']);
+const buttonShapeEnum = z.enum(['rectangle', 'round']);
+const themeEnum = z.enum(['auto', 'light', 'dark']);
+const hexColor = z.string();
+const nullableString = z.string().nullable();
+
+const launcherButtonCommonFields = {
+  position: positionEnum.optional(),
+  buttonShape: buttonShapeEnum.optional(),
+  buttonIcon: nullableString.optional(),
+  buttonIconSize: z.number().optional(),
+  buttonIconStroke: z.number().optional(),
+  theme: themeEnum.optional(),
+  enableHoverScaleEffect: z.boolean().optional(),
+  tooltipEnabled: z.boolean().optional(),
+  lightButtonColor: hexColor.optional(),
+  lightTextColor: hexColor.optional(),
+  lightButtonHoverColor: hexColor.optional(),
+  lightTextHoverColor: hexColor.optional(),
+  darkButtonColor: hexColor.optional(),
+  darkTextColor: hexColor.optional(),
+  darkButtonHoverColor: hexColor.optional(),
+  darkTextHoverColor: hexColor.optional(),
+};
+
 const widgetLauncherButtonProjectSchema = z
   .object({
+    ...launcherButtonCommonFields,
     buttonText: projectLocalizedTextField,
     tooltipText: projectLocalizedTextField,
   })
-  .passthrough();
+  .strict();
+
+const widgetDialogColorsSchema = z
+  .object({
+    lightButtonColor: hexColor.optional(),
+    lightTextColor: hexColor.optional(),
+    lightButtonHoverColor: hexColor.optional(),
+    lightTextHoverColor: hexColor.optional(),
+    lightBackgroundColor: hexColor.optional(),
+    lightSecondaryColor: hexColor.optional(),
+    lightInputColor: hexColor.optional(),
+    lightForegroundColor: hexColor.optional(),
+    darkButtonColor: hexColor.optional(),
+    darkTextColor: hexColor.optional(),
+    darkButtonHoverColor: hexColor.optional(),
+    darkTextHoverColor: hexColor.optional(),
+    darkBackgroundColor: hexColor.optional(),
+    darkSecondaryColor: hexColor.optional(),
+    darkInputColor: hexColor.optional(),
+    darkForegroundColor: hexColor.optional(),
+  })
+  .strict();
+
+const projectScreenshotSchema = z
+  .object({
+    useScreenCaptureAPI: z.boolean().optional(),
+    maxScreenshotSize: z.number().int().min(1).max(50).optional(),
+    maxImageUploadSizeMb: z.number().int().min(1).max(50).optional(),
+    maxVideoUploadSizeMb: z.number().int().min(1).max(500).optional(),
+  })
+  .strict();
+
+const projectSecuritySchema = z
+  .object({
+    allowedOrigins: z.array(z.string()).optional(),
+  })
+  .strict();
+
+const projectBrandingSchema = z
+  .object({
+    logoUrl: z.string().optional(),
+    companyName: z.string().optional(),
+    primaryColor: z.string().optional(),
+    accentColor: z.string().optional(),
+    poweredByVisible: z.boolean().optional(),
+  })
+  .strict();
+
+const customFieldSchema = z
+  .object({
+    id: z.string(),
+    label: z.string(),
+    type: z.enum(['text', 'select', 'checkbox']),
+    required: z.boolean().optional(),
+    options: z.array(z.string()).optional(),
+  })
+  .strict();
+
+const projectFieldsSchema = z
+  .object({
+    titleRequired: z.boolean().optional(),
+    titlePlaceholder: z.string().optional(),
+    descriptionRequired: z.boolean().optional(),
+    descriptionPlaceholder: z.string().optional(),
+    priorityVisible: z.boolean().optional(),
+    priorityDefault: z.enum(['lowest', 'low', 'medium', 'high', 'highest']).optional(),
+    emailVisible: z.boolean().optional(),
+    emailRequired: z.boolean().optional(),
+    customFields: z.array(customFieldSchema).optional(),
+  })
+  .strict();
+
+const projectReporterNotificationsSchema = z
+  .object({
+    emailEnabled: z.boolean().optional(),
+    notifyOnNewReport: z.boolean().optional(),
+    notifyOnStatusChange: z.boolean().optional(),
+    notifyOnPriorityChange: z.boolean().optional(),
+    notifyOnAssignment: z.boolean().optional(),
+    messagingEnabled: z.boolean().optional(),
+  })
+  .strict();
+
+const projectLegacyWidgetSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    showOnMobile: z.boolean().optional(),
+    captureMethod: z.enum(['visible', 'fullpage', 'element']).optional(),
+    rateLimit: z.number().optional(),
+  })
+  .strict();
 
 const projectSettingsSchema = z
   .object({
+    defaultAssigneeUserId: z.string().nullable().optional(),
     language: projectLanguageSchema.optional(),
     widgetLauncherButton: widgetLauncherButtonProjectSchema.optional(),
+    widgetDialog: widgetDialogColorsSchema.optional(),
+    screenshot: projectScreenshotSchema.optional(),
+    security: projectSecuritySchema.optional(),
+    branding: projectBrandingSchema.optional(),
+    fields: projectFieldsSchema.optional(),
+    notifyReporter: z.boolean().optional(),
+    reporterNotifications: projectReporterNotificationsSchema.optional(),
+    widget: projectLegacyWidgetSchema.optional(),
   })
-  .passthrough();
+  .strict();
 
 const globalLocalizedTextField = z.union([z.null(), localizedStringSchema]);
 
 const widgetLauncherButtonGlobalSchema = z
   .object({
+    ...launcherButtonCommonFields,
     buttonText: globalLocalizedTextField.optional(),
     tooltipText: globalLocalizedTextField.optional(),
   })
-  .passthrough();
+  .strict();
 
 // Types
 
