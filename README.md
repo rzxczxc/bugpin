@@ -34,6 +34,7 @@ Capture screenshots and annotate issues from any page on your site.
 - Shadow DOM isolation: widget styles never leak into your site, and your CSS never bleeds into the widget
 - Offline-safe: reports are cached locally and synced when the connection returns
 - Annotation tools: pen, shapes, arrows, text, privacy blur
+- Translated into 8 languages (English, German, French, Dutch, Spanish, Italian, Japanese, Simplified Chinese) with automatic detection
 
 # Features
 
@@ -43,6 +44,8 @@ Capture screenshots and annotate issues from any page on your site.
 - **Offline Support** - Reports are buffered and sent when back online
 - **Self-Hosted** - Your data stays on your servers
 - **Multi-Project** - Manage multiple projects with separate API keys
+- **Multilingual Widget** - Widget and reporter emails translated into 8 languages, with per-project language settings
+- **Export Diagnostics** - Export a report's full context as Markdown, plain text, an AI prompt, or JSON, with section toggles and redactions
 - **Enhanced Security Features** - Domain whitelists, configurable rate limiting, HSTS, and secure headers
 - **GitHub Integration** - Forward reports to GitHub Issues
 - **Dark Mode** - Admin Console supports light and dark themes

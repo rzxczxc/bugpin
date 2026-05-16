@@ -11,6 +11,7 @@ Embeddable visual bug reporting widget for web applications. Capture screenshots
 - **Lightweight** - Less than 150KB gzipped
 - **Dark Mode** - Automatic theme detection
 - **Responsive** - Works on all devices
+- **Multilingual** - Translated into 8 languages (English, German, French, Dutch, Spanish, Italian, Japanese, Simplified Chinese) with automatic detection from `<html lang>` or the visitor's browser
 - **Framework Agnostic** - Works with React, Vue, Angular, Svelte, .NET, and more
 
 ## Installation
@@ -32,7 +33,7 @@ BugPin.init({
 
 ## Configuration
 
-The widget automatically fetches its configuration from the BugPin server based on your API key. All visual settings (theme, position, colors, button text) are managed in the BugPin admin portal.
+The widget automatically fetches its configuration from the BugPin server based on your API key. All visual settings (theme, position, colors, button text) are managed in the BugPin Admin Console.
 
 ### Required Options
 
@@ -40,6 +41,39 @@ The widget automatically fetches its configuration from the BugPin server based 
 | ----------- | -------- | ---------------------------------------- |
 | `apiKey`    | `string` | Your project API key (from BugPin admin) |
 | `serverUrl` | `string` | Your BugPin server URL                   |
+
+### Optional Options
+
+| Option     | Type     | Description                                                                                                                        |
+| ---------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `language` | `string` | BCP 47 language code (e.g. `en`, `de`, `fr`, `nl`, `es`, `it`, `ja`, `zh`). Overrides auto-detection and the project's default.    |
+
+## Language
+
+The widget ships with translations for English, German, French, Dutch, Spanish, Italian, Japanese, and Simplified Chinese.
+
+By default, the active language is resolved in this order:
+
+1. `language` passed to `BugPin.init()`
+2. `data-language` attribute on the script tag (when loaded via `<script>`)
+3. The `lang` attribute on `<html>` (the widget watches for changes and re-renders)
+4. The visitor's browser language
+5. The project's default language (configured in the Admin Console)
+
+```javascript
+BugPin.init({
+  apiKey: 'your-project-api-key',
+  serverUrl: 'https://your-bugpin-server.com',
+  language: 'de',
+});
+```
+
+Switch the language at runtime, for example when your app's locale changes:
+
+```javascript
+BugPin.setLanguage('fr'); // returns the resolved locale, or null if unsupported
+BugPin.getLanguage(); // returns the currently active locale
+```
 
 ## Framework Examples
 
@@ -198,7 +232,7 @@ NEXT_PUBLIC_BUGPIN_SERVER_URL=https://bugpin.example.com
 You need an API key from your BugPin server to initialize the widget.
 
 1. Deploy BugPin server on your infrastructure (e.g. using [Docker](https://docs.bugpin.io/installation/docker))
-2. Log in to the BugPin admin portal
+2. Log in to the BugPin Admin Console
 3. Open **Projects**, create a new project or select an existing one
 4. Copy the API key (shown in the project card or in **Project Settings**)
 

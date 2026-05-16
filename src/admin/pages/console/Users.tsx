@@ -214,8 +214,8 @@ export function Users() {
             ) : (
               data?.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
+                  <TableCell className="max-w-[260px]">
+                    <div className="flex items-center gap-3 min-w-0">
                       <Avatar key={user.avatarUrl || 'no-avatar'}>
                         {user.avatarUrl && user.avatarUrl.trim() !== '' ? (
                           <AvatarImage src={user.avatarUrl} alt={user.name || 'User'} />
@@ -225,9 +225,13 @@ export function Users() {
                           </AvatarFallback>
                         )}
                       </Avatar>
-                      <div>
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                      <div className="min-w-0">
+                        <p className="font-medium truncate" title={user.name || undefined}>
+                          {user.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground truncate" title={user.email}>
+                          {user.email}
+                        </p>
                       </div>
                     </div>
                   </TableCell>
